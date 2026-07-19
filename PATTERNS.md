@@ -26,6 +26,8 @@ Tests that hit paid or external services live behind an explicit pytest marker, 
 Three repos independently invented a read-only invariant checker — that convergence is the signal.
 When a repo has structural invariants beyond what lint/types express (manifest conformance, zone drift, dangling references, wiring that must exist), give it a `make doctor`: read-only, PASS/WARN/FAIL per check, reports for a human, never auto-fixes.
 Run it at session start; this repo's own `doctor.sh` is the reference shape.
+A second axis, proven independently in a fourth repo: the ENVIRONMENT doctor — check the machine, not the repo.
+Before conformance, verify the required toolchain is present and at the pinned versions (node against `.nvmrc`, python against `.python-version`, the package managers themselves), so `make dev`'s silent assumptions become checkable and a fresh machine fails loudly instead of half-working.
 
 ## Status taxonomy for agent-facing tools
 
