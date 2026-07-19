@@ -50,8 +50,10 @@ templates/
   node/                      # Makefile mapping the same verbs onto npm scripts
   skills/verify/             # "prove it runs" skill skeleton (opt-in, see PATTERNS.md)
   zones/                     # PreToolUse zone guard for agent-co-authored repos (opt-in)
+blueprints/                  # stack blueprints (fastapi-vercel), executed by /spinup
 init.sh                      # stamp a repo / audit drift (install-if-missing, never overwrites)
 doctor.sh                    # read-only conformance audit + config suggestion
+DECISIONS.md                 # tooling verdicts + migration recipes (e.g. uv over poetry)
 PATTERNS.md                  # shape-specific gold standards, applied per repo by /adopt
 .claude/skills/adopt/        # outbound: the adoption playbook, /adopt <repo>
 .claude/skills/harvest/      # inbound: ingest a repo's practices, /harvest <repo>

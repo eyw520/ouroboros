@@ -34,6 +34,8 @@ Note each candidate's failure modes while you have the source in front of you; t
 - Checkable invariant → a `doctor.sh` check alone.
 - Universal principle or better wording → `templates/AGENTS.md`. **Batch these**: every AGENTS.md edit costs a fleet re-sync, so land doc changes together, not dribbled.
 - Shape-specific (only some repos have the shape) → `PATTERNS.md`, with provenance, plus a `templates/` asset if there is concrete code to copy.
+- Tooling verdict (X supersedes Y) → `DECISIONS.md`, with the why and an executable migration recipe — a verdict without a recipe is not done.
+- Stack-structure practice (how an app of this shape is laid out, deployed, wired) → the relevant `blueprints/*/BLUEPRINT.md`.
 - Process lesson (how adoption or harvesting itself should work) → the `adopt` or `harvest` skill, in the same commit as the change that motivated it.
 - Convergence test: independently invented in two or more repos → strong candidate; single-repo → needs an explicit story for why it generalizes.
 

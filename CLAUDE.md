@@ -16,6 +16,14 @@ agent can drive repo housekeeping. Conventions flow in both directions:
   (`/harvest <repo>`) — survey the surplus beyond the standard, verify each
   candidate actually works, classify it to a destination, propose before
   landing, then land one commit per change and offer the fleet sync.
+- **Greenfield** — the user asks to spin up a new app: follow
+  `.claude/skills/spinup/SKILL.md` (`/spinup <blueprint> <path>`), which
+  executes `blueprints/<name>/BLUEPRINT.md` verbatim — scaffold, stamp, verify
+  end-to-end, first commit through the hooks.
+
+`DECISIONS.md` is the tooling-verdict register (what supersedes what, why, and
+the migration recipe); the doctor warns on superseded tooling, and `/adopt`
+applies the migrations.
 
 ## Invariants
 
