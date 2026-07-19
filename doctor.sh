@@ -131,6 +131,7 @@ if [ -f "$target/uv.lock" ]; then
   fi
 fi
 if [ -f "$target/poetry.lock" ]; then
+  warn "poetry is superseded by uv (DECISIONS.md has the migration recipe)"
   if command -v poetry >/dev/null 2>&1; then
     if (cd "$target" && poetry check --lock >/dev/null 2>&1); then
       pass "poetry.lock is fresh against pyproject.toml"
