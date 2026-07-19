@@ -121,10 +121,18 @@ fi
 # --- Security ----------------------------------------------------------------
 leaks=$(git -C "$target" ls-files | grep -E '\.pem$|\.key$|(^|/)id_rsa|(^|/)secrets\.(env|json)$' || true)
 if [ -n "$leaks" ]; then
-  fail "credential-shaped files are TRACKED (flag to the operator; do not rewrite history unilaterally):"
+  fail "credential-shaped FILENAMES are tracked (flag to the operator; do not rewrite history unilaterally):"
   echo "$leaks" | sed 's/^/      /'
 else
-  pass "no credential-shaped tracked files"
+  pass "no credential-shaped tracked filenames"
+fi
+
+scanner="$target/.githooks/secret-scan"
+[ -x "$scanner" ] || scanner="$tpl/githooks/secret-scan"
+if (cd "$target" && "$scanner" --tracked >/dev/null 2>&1); then
+  pass "content secret scan clean ($(basename "$(dirname "$scanner")")/secret-scan --tracked)"
+else
+  fail "content secret scan found credential-shaped VALUES — rerun for redacted locations: (cd $target && $scanner --tracked)"
 fi
 
 # --- Config suggestion from history ------------------------------------------
