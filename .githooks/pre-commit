@@ -1,0 +1,15 @@
+#!/bin/sh
+# Pre-commit gate: block staged credentials, then run the repo's gate — the
+# enforcement behind "full gate green before each commit". Bypass with
+# --no-verify when you must (mid-rebase, WIP branch); CI still runs the gate.
+#
+# If `make check` is too slow to run on every commit, swap the exec below for
+# the fast subset (format/lint on staged files) and let CI carry the full gate.
+
+hooks_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+
+if [ -x "$hooks_dir/secret-scan" ]; then
+  "$hooks_dir/secret-scan" || exit 1
+fi
+
+exec make check

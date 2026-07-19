@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Smoke suite for the standards tooling: stamps scratch repos and asserts the
+# hook, scanner, and doctor behave. Zero dependencies beyond git + bash.
+set -uo pipefail
+cd "$(dirname "$0")/.." || exit 1
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+fail() { echo "FAIL: $*" >&2; exit 1; }
+
+# --- stamp: scoped python repo ------------------------------------------------
+git init -q "$tmp/repo"
+./init.sh -s "all|agent" -l python -c "$tmp/repo" > /dev/null || fail "init.sh (scoped) errored"
+for f in .githooks/commit-msg .githooks/pre-commit .githooks/secret-scan \
+         AGENTS.md CLAUDE.md .editorconfig Makefile ruff.toml mypy.ini \
+         pyrightconfig.json .github/workflows/gate.yml; do
+  [ -f "$tmp/repo/$f" ] || fail "stamp missing $f"
+done
+[ -x "$tmp/repo/.githooks/pre-commit" ] || fail "pre-commit not executable"
+[ -x "$tmp/repo/.githooks/secret-scan" ] || fail "secret-scan not executable"
+[ "$(git -C "$tmp/repo" config core.hooksPath)" = ".githooks" ] || fail "hooksPath not wired"
+
+# --- commit-msg: scoped form --------------------------------------------------
+msg() { printf '%s\n' "$1" > "$tmp/m"; "$tmp/repo/.githooks/commit-msg" "$tmp/m" > /dev/null 2>&1; }
+msg 'feat(all): Good subject.' || fail "scoped hook rejected a good subject"
+msg 'feat: Missing scope.' && fail "scoped hook accepted a scopeless subject"
+msg 'feat(all): no capital.' && fail "hook accepted a lowercase subject"
+msg 'garbage' && fail "hook accepted garbage"
+printf 'feat(all): Ok.\n\nA body.\n' > "$tmp/m"
+"$tmp/repo/.githooks/commit-msg" "$tmp/m" > /dev/null 2>&1 && fail "hook accepted a body"
+
+# --- commit-msg: scopeless form -----------------------------------------------
+git init -q "$tmp/repo2"
+./init.sh "$tmp/repo2" > /dev/null || fail "init.sh (scopeless) errored"
+printf 'feat: Good subject.\n' > "$tmp/m"
+"$tmp/repo2/.githooks/commit-msg" "$tmp/m" > /dev/null 2>&1 || fail "scopeless hook rejected a good subject"
+printf 'feat(all): Scoped.\n' > "$tmp/m"
+"$tmp/repo2/.githooks/commit-msg" "$tmp/m" > /dev/null 2>&1 && fail "scopeless hook accepted a scope"
+
+# --- init.sh is idempotent and never overwrites -------------------------------
+out=$(./init.sh -s "all|agent" -l python -c "$tmp/repo") || fail "init.sh rerun errored"
+echo "$out" | grep -q "installed" && fail "rerun reinstalled something"
+echo "$out" | grep -q "DIFFERS" && fail "rerun reported DIFFERS on an untouched stamp"
+
+# --- doctor: clean on a fresh stamp, read-only --------------------------------
+before=$(git -C "$tmp/repo" status --porcelain)
+./doctor.sh "$tmp/repo" > /dev/null || fail "doctor failed on a freshly stamped repo"
+after=$(git -C "$tmp/repo" status --porcelain)
+[ "$before" = "$after" ] || fail "doctor mutated the target"
+
+# --- secret-scan: staged and tracked ------------------------------------------
+printf 'key=AKIAABCDEFGHIJKLMNOP\n' > "$tmp/repo/leak.txt"
+git -C "$tmp/repo" add leak.txt
+(cd "$tmp/repo" && ./.githooks/secret-scan > /dev/null 2>&1) && fail "staged secret passed the scan"
+(cd "$tmp/repo" && ./.githooks/secret-scan --tracked > /dev/null 2>&1) && fail "tracked secret passed the scan"
+./doctor.sh "$tmp/repo" > /dev/null 2>&1 && fail "doctor passed a repo with a staged secret"
+git -C "$tmp/repo" rm -q --cached leak.txt && rm "$tmp/repo/leak.txt"
+(cd "$tmp/repo" && ./.githooks/secret-scan --tracked > /dev/null 2>&1) || fail "clean repo failed the scan"
+
+echo "PASS  smoke: stamp, hooks, scanner, doctor"
