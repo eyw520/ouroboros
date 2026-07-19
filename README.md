@@ -4,7 +4,19 @@ Canonical DX conventions for every project: the commit format and its enforcing
 hook, the CLAUDE.md / AGENTS.md structure, the `make check` gate, CI that runs
 exactly the gate, and tooling baselines.
 
-## Use
+## Agent-forward use (the intended path)
+
+Add this repo to a Claude Code session (`/add-dir path/to/standards`) and ask it
+to standardize or audit a repo — its CLAUDE.md routes the agent to `doctor.sh`
+(read-only audit) and the `adopt` skill (`/adopt <repo>`), which carries the
+full playbook: classification, config-from-history, doc integration, gate
+verification, and the fresh-checkout pitfalls that break first CI runs.
+
+```sh
+./doctor.sh ../myproject     # what's missing / drifted, and suggested -t/-s
+```
+
+## Manual use
 
 ```sh
 ./init.sh -s "all|agent|infra" -l python -c ../myproject
@@ -30,7 +42,9 @@ templates/
   github/workflows/gate.yml  # CI = `make check`, nothing else
   python/                    # Makefile + ruff.toml + mypy.ini + pyrightconfig.json (uv, py311, line 120)
   node/                      # Makefile mapping the same verbs onto npm scripts
-init.sh                      # stamp a repo / audit drift
+init.sh                      # stamp a repo / audit drift (install-if-missing, never overwrites)
+doctor.sh                    # read-only conformance audit + config suggestion
+.claude/skills/adopt/        # the adoption playbook, invocable as /adopt <repo>
 ```
 
 ## The convention, in one line
