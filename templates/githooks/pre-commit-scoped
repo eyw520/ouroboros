@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# Change-scoped, phased, parallel pre-commit — the variant for multi-toolchain
+# repos whose full gate is too slow to run on every commit. The default hook
+# (pre-commit) runs `make check`; swap this in when scoping pays for itself.
+# Harvested from a production monorepo; see PATTERNS.md.
+#
+# Shape: detect which areas the staged paths touch, run only the relevant legs,
+# parallelize independent legs within a phase, and print per-leg timings so the
+# gate's cost stays visible and attributable. CI still runs the FULL gate —
+# scoping trades a little local coverage for speed, never CI coverage.
+#
+# Edit the area filters and the phase job lists below for the repo.
+set -u
+
+hooks_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+if [ -x "$hooks_dir/secret-scan" ]; then
+  "$hooks_dir/secret-scan" || exit 1
+fi
+
+changed() { git diff --cached --name-only --diff-filter=ACM | grep -E -e "$1" || true; }
+
+now_ms() { python3 -c 'import time; print(int(time.time()*1000))' 2>/dev/null || echo "$(($(date +%s) * 1000))"; }
+
+log_dir=$(mktemp -d)
+trap 'rm -rf "$log_dir"' EXIT
+job_names=()
+
+start_job() { # start_job <name> <command...>
+  local name=$1
+  shift
+  now_ms > "$log_dir/$name.start"
+  (
+    "$@"
+    rc=$?
+    now_ms > "$log_dir/$name.end"
+    exit "$rc"
+  ) > "$log_dir/$name.log" 2>&1 &
+  echo "$!" > "$log_dir/$name.pid"
+  job_names+=("$name")
+}
+
+wait_jobs() { # wait_jobs <phase-label>
+  local phase=$1 failed=() name dur slowest="" slowest_ms=0
+  [ "${#job_names[@]}" -eq 0 ] && return 0
+  for name in "${job_names[@]}"; do
+    wait "$(cat "$log_dir/$name.pid")" || failed+=("$name")
+    dur=$(( $(cat "$log_dir/$name.end" 2>/dev/null || now_ms) - $(cat "$log_dir/$name.start") ))
+    printf '  %-24s %sms\n' "$name" "$dur"
+    if [ "$dur" -gt "$slowest_ms" ]; then slowest_ms=$dur; slowest=$name; fi
+  done
+  [ "$slowest_ms" -gt 5000 ] && echo "  slowest: $slowest (${slowest_ms}ms)"
+  if [ "${#failed[@]}" -gt 0 ]; then
+    echo ""
+    echo "=== $phase failed: ${failed[*]} ==="
+    for name in "${failed[@]}"; do
+      echo "--- $name ---"
+      cat "$log_dir/$name.log"
+    done
+    exit 1
+  fi
+  job_names=()
+}
+
+# --- Area filters (edit per repo) ---------------------------------------------
+py_changed=$(changed '\.py$')
+ts_changed=$(changed '\.(ts|tsx)$')
+
+# --- Phase 1: fast lint/format (parallel) -------------------------------------
+echo "pre-commit: phase 1 (lint)"
+if [ -n "$py_changed" ]; then start_job py-lint make lint-check-python; fi
+if [ -n "$ts_changed" ]; then start_job ts-lint make lint-check-ts; fi
+wait_jobs "phase 1"
+
+# --- Phase 2: slower typecheck/tests (parallel) --------------------------------
+echo "pre-commit: phase 2 (types/tests)"
+if [ -n "$py_changed" ]; then start_job py-types make typecheck-python; fi
+if [ -n "$ts_changed" ]; then start_job ts-types make typecheck-ts; fi
+wait_jobs "phase 2"
+
+echo "pre-commit: all scoped checks passed"

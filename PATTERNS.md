@@ -32,6 +32,13 @@ Run it at session start; this repo's own `doctor.sh` is the reference shape.
 A tool an agent consumes should classify its failures instead of leaking tracebacks: `ok` (payload is the result), `transient` (upstream blip — wait `retry_after` seconds and retry), `permanent` (bad input or collision — fix the input, do not retry).
 The classification lives at the network edge in one place, and every caller acts systematically instead of parsing error text.
 
+## Scoped gates for slow monorepos
+
+When a multi-toolchain monorepo's full gate is too slow for every commit, scope the pre-commit instead of abandoning it: detect which areas the staged paths touch, run only the relevant legs, parallelize independent legs within phases (fast lint before slow typecheck), and print per-leg timings with a slowest-leg callout so gate cost stays visible and attributable.
+`templates/githooks/pre-commit-scoped` is the generic harness — the filters and job lists are per-repo config at the top; the timing and job machinery is reusable.
+CI still runs the full gate: scoping trades a little local coverage for speed, never CI coverage.
+Harvested from the Inspirited monorepo, where three phases cover lint, typecheck, and generated-artifact refresh across two toolchains.
+
 ## Fast gates for slow suites
 
 When the test leg dominates a gate that runs per commit, two opt-in accelerators exist beyond the standard caches; both trade a little trust for a lot of time, so keep CI running the full uncached gate either way.
