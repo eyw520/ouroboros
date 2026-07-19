@@ -12,6 +12,12 @@ to standardize or audit a repo — its CLAUDE.md routes the agent to `doctor.sh`
 full playbook: classification, config-from-history, doc integration, gate
 verification, and the fresh-checkout pitfalls that break first CI runs.
 
+The reverse direction works too: attach a repo worth learning from and ask to
+harvest it — the `harvest` skill (`/harvest <repo>`) surveys what the repo does
+beyond the standard, verifies each practice actually works, and ports the
+accepted ones into templates, doctor checks, AGENTS.md, or PATTERNS.md, with
+provenance and a fleet sync.
+
 ```sh
 ./doctor.sh ../myproject     # what's missing / drifted, and suggested -t/-s
 ```
@@ -47,7 +53,8 @@ templates/
 init.sh                      # stamp a repo / audit drift (install-if-missing, never overwrites)
 doctor.sh                    # read-only conformance audit + config suggestion
 PATTERNS.md                  # shape-specific gold standards, applied per repo by /adopt
-.claude/skills/adopt/        # the adoption playbook, invocable as /adopt <repo>
+.claude/skills/adopt/        # outbound: the adoption playbook, /adopt <repo>
+.claude/skills/harvest/      # inbound: ingest a repo's practices, /harvest <repo>
 ```
 
 ## The convention, in one line

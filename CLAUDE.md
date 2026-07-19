@@ -1,17 +1,21 @@
 # standards — canonical cross-project DX conventions
 
 This repo is **agent-forward**: it gets added to sessions (`/add-dir`) so an
-agent can drive repo housekeeping. If the user asks to standardize, audit,
-adopt, or "run the standard" on any repo — or asks what a repo is missing:
+agent can drive repo housekeeping. Conventions flow in both directions:
 
-1. `./doctor.sh <repo>` — read-only conformance report, drift checks, and a
-   commit-history histogram to derive types/scopes from.
-2. Follow `.claude/skills/adopt/SKILL.md` (invocable as `/adopt <repo>`) — the
-   full playbook: classify → survey → configure → stamp → integrate → verify →
-   commit → report. The classification gate (machine-written repos, forks,
-   opt-outs) is not skippable.
-3. `./init.sh [-t types] [-s scopes] [-l python|node|none] [-c] <repo>` — the
-   mechanical stamp; install-if-missing only.
+- **Outbound** — the user asks to standardize, audit, adopt, or "run the
+  standard" on a repo, or asks what a repo is missing: run `./doctor.sh <repo>`
+  (read-only conformance report, drift checks, commit-history histogram), then
+  follow `.claude/skills/adopt/SKILL.md` (`/adopt <repo>`) — classify → survey →
+  configure → stamp → integrate → verify → commit → report. The classification
+  gate (machine-written repos, forks, opt-outs) is not skippable.
+  `./init.sh [-t types] [-s scopes] [-l python|node|none] [-c] <repo>` is the
+  mechanical stamp; install-if-missing only.
+- **Inbound** — the user attaches a repo to learn from it, or asks to ingest or
+  harvest its practices: follow `.claude/skills/harvest/SKILL.md`
+  (`/harvest <repo>`) — survey the surplus beyond the standard, verify each
+  candidate actually works, classify it to a destination, propose before
+  landing, then land one commit per change and offer the fleet sync.
 
 ## Invariants
 
