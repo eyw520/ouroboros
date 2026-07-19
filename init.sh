@@ -67,6 +67,7 @@ install "$tpl/editorconfig" ".editorconfig"
 
 case "$lang" in
   python)
+    install "$tpl/python/python-version" ".python-version"
     install "$tpl/python/Makefile" "Makefile"
     install "$tpl/python/ruff.toml" "ruff.toml"
     install "$tpl/python/mypy.ini" "mypy.ini"

@@ -13,7 +13,7 @@ git init -q "$tmp/repo"
 ./init.sh -s "all|agent" -l python -c "$tmp/repo" > /dev/null || fail "init.sh (scoped) errored"
 for f in .githooks/commit-msg .githooks/pre-commit .githooks/secret-scan \
          AGENTS.md CLAUDE.md .editorconfig Makefile ruff.toml mypy.ini \
-         pyrightconfig.json .github/workflows/gate.yml; do
+         pyrightconfig.json .python-version .github/workflows/gate.yml; do
   [ -f "$tmp/repo/$f" ] || fail "stamp missing $f"
 done
 [ -x "$tmp/repo/.githooks/pre-commit" ] || fail "pre-commit not executable"

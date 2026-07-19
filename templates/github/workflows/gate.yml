@@ -17,6 +17,10 @@ jobs:
       - uses: actions/checkout@v4
 
       # Python (uv) setup — swap for actions/setup-node@v4 + `npm ci` on Node repos.
+      # The runtime version comes from the repo's pin file, never hardcoded here:
+      # `uv python install` reads .python-version; the poetry variant uses
+      # setup-python's `python-version-file: .python-version`; node uses
+      # setup-node's `node-version-file: .nvmrc`.
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
