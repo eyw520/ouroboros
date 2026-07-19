@@ -109,8 +109,37 @@ if [ -n "$mk" ]; then
       warn "make $v missing (verb contract: check/fmt/hooks/dev, mapped onto the repo's real toolchain)"
     fi
   done
+  if grep -qE "^test:" "$mk"; then
+    pass "make test exists"
+  else
+    warn "make test missing — if check already runs tests, alias it; if the repo has no tests, that is the real gap"
+  fi
 else
   warn "no Makefile — map the verb contract onto the repo's toolchain (templates/python|node/Makefile)"
+fi
+
+# --- Lockfile freshness --------------------------------------------------------
+if [ -f "$target/uv.lock" ]; then
+  if command -v uv >/dev/null 2>&1; then
+    if (cd "$target" && uv lock --check >/dev/null 2>&1) || (cd "$target" && uv lock --locked >/dev/null 2>&1); then
+      pass "uv.lock is fresh against pyproject.toml"
+    else
+      warn "uv.lock is STALE against pyproject.toml — a fresh checkout fails; refresh as its own commit"
+    fi
+  else
+    echo "INFO  uv.lock present but uv unavailable; freshness unchecked"
+  fi
+fi
+if [ -f "$target/poetry.lock" ]; then
+  if command -v poetry >/dev/null 2>&1; then
+    if (cd "$target" && poetry check --lock >/dev/null 2>&1); then
+      pass "poetry.lock is fresh against pyproject.toml"
+    else
+      warn "poetry.lock is STALE against pyproject.toml — a fresh checkout fails; refresh as its own commit"
+    fi
+  else
+    echo "INFO  poetry.lock present but poetry unavailable; freshness unchecked"
+  fi
 fi
 
 # --- CI ----------------------------------------------------------------------
