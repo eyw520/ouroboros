@@ -13,6 +13,8 @@ Route by request:
 
 ## Invariants
 
+- The founding thesis: only enforced or mechanized conventions survive — prose-only rules drift.
+  Every addition should make something checkable (doctor), enforced (hooks/CI), or executable (scripts/recipes); prose that cannot become one of those is a smell.
 - `templates/githooks/commit-msg` is the single source of truth for the commit format; docs defer to it. Change hook and docs together.
 - `init.sh` never overwrites; `doctor.sh` never mutates. Both stay POSIX sh.
 - Judgment lives in the skills, mechanics in the scripts.
