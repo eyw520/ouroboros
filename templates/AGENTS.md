@@ -6,7 +6,7 @@ disagree, the hook wins — fix whichever is wrong in the same commit.
 
 ## First principles
 
-1. Avoid comments or docstrings unless absolutely necessary.
+1. Comments and docstrings earn their place: write them only when they add what the code cannot say — the why, a non-obvious constraint — and keep them concise, dense, and evergreen.
 2. Never use emojis in generated code.
 3. Do not generate markdown files unless instructed to do so.
 4. After making changes, run the gate: `make check`.
