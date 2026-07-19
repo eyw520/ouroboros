@@ -24,8 +24,15 @@ done
 msg() { printf '%s\n' "$1" > "$tmp/m"; "$tmp/repo/.githooks/commit-msg" "$tmp/m" > /dev/null 2>&1; }
 msg 'feat(all): Good subject.' || fail "scoped hook rejected a good subject"
 msg 'feat: Missing scope.' && fail "scoped hook accepted a scopeless subject"
-msg 'feat(all): no capital.' && fail "hook accepted a lowercase subject"
+msg 'feet(all): Wrong type.' && fail "hook accepted a wrong type"
 msg 'garbage' && fail "hook accepted garbage"
+
+# --- commit-msg: cosmetic auto-fix ---------------------------------------------
+msg 'feat(all): add user auth' || fail "hook rejected an auto-fixable subject"
+[ "$(head -1 "$tmp/m")" = 'feat(all): Add user auth.' ] || fail "auto-fix produced: $(head -1 "$tmp/m")"
+msg 'fix(all): Trailing space.   ' || fail "hook rejected a trailing-space subject"
+[ "$(head -1 "$tmp/m")" = 'fix(all): Trailing space.' ] || fail "trailing-space fix produced: $(head -1 "$tmp/m")"
+msg 'feat(all): ' && fail "hook accepted an empty subject after prefix"
 printf 'feat(all): Ok.\n\nA body.\n' > "$tmp/m"
 "$tmp/repo/.githooks/commit-msg" "$tmp/m" > /dev/null 2>&1 && fail "hook accepted a body"
 
