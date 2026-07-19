@@ -14,7 +14,7 @@ Migrate:
 2. Swap Makefile verbs from `poetry run` to `uv run`; `dev` becomes `hooks` + `uv sync`.
 3. CI: drop `pipx install poetry` and `cache: poetry`; use `astral-sh/setup-uv` with `enable-cache: true`, then `uv python install` and `uv sync --frozen`.
 4. Run the full gate before and after; delete `poetry.lock` (and `poetry.toml`) only once green.
-Fleet status: infiniclaw, datagate, alexandria already uv; infinitron, autolab, constellation still poetry.
+`doctor.sh` reports which repos still lag this verdict — status lives there, not here.
 
 ## Committed .githooks over husky (2026-07-19)
 

@@ -1,7 +1,7 @@
 # Patterns
 
 Shape-specific gold standards: reach for these when a repo has the shape, skip them when it doesn't.
-Each was proven in one of the fleet's repos before landing here.
+Every entry stands on its own reasoning — no entry cites where it came from, because a pattern that needs its lineage to justify itself is not a standard.
 Unlike `templates/` stamped by `init.sh`, everything here is opt-in — the adopt skill (Phase 4) decides per repo.
 
 ## The verify skill — prove it runs, distinct from the gate
@@ -23,10 +23,10 @@ Tests that hit paid or external services live behind an explicit pytest marker, 
 
 ## The doctor verb
 
-Three repos independently invented a read-only invariant checker — that convergence is the signal.
+Lint and types cannot see structural invariants, so repos that have them keep reinventing a read-only checker — make it a named verb instead.
 When a repo has structural invariants beyond what lint/types express (manifest conformance, zone drift, dangling references, wiring that must exist), give it a `make doctor`: read-only, PASS/WARN/FAIL per check, reports for a human, never auto-fixes.
 Run it at session start; this repo's own `doctor.sh` is the reference shape.
-A second axis, proven independently in a fourth repo: the ENVIRONMENT doctor — check the machine, not the repo.
+A second axis: the ENVIRONMENT doctor — check the machine, not the repo.
 Before conformance, verify the required toolchain is present and at the pinned versions (node against `.nvmrc`, python against `.python-version`, the package managers themselves), so `make dev`'s silent assumptions become checkable and a fresh machine fails loudly instead of half-working.
 
 ## Status taxonomy for agent-facing tools
@@ -39,11 +39,12 @@ The classification lives at the network edge in one place, and every caller acts
 When a multi-toolchain monorepo's full gate is too slow for every commit, scope the pre-commit instead of abandoning it: detect which areas the staged paths touch, run only the relevant legs, parallelize independent legs within phases (fast lint before slow typecheck), and print per-leg timings with a slowest-leg callout so gate cost stays visible and attributable.
 `templates/githooks/pre-commit-scoped` is the generic harness — the filters and job lists are per-repo config at the top; the timing and job machinery is reusable.
 CI still runs the full gate: scoping trades a little local coverage for speed, never CI coverage.
-Harvested from the Inspirited monorepo, where three phases cover lint, typecheck, and generated-artifact refresh across two toolchains.
+A typical shape is three phases — lint, typecheck, generated-artifact refresh — across two toolchains.
 
 ## Fast gates for slow suites
 
 When the test leg dominates a gate that runs per commit, two opt-in accelerators exist beyond the standard caches; both trade a little trust for a lot of time, so keep CI running the full uncached gate either way.
+Both are candidates, not verdicts: trial one against the repo's own suite and promote it to DECISIONS.md only once it proves out.
 `pytest-testmon` runs only the tests whose covered code changed — right for suites in the minutes, wrong for suites already under a minute (overhead eats the win).
 `dmypy` (the mypy daemon) makes warm typechecks near-instant, but misbehaves with some plugin-heavy configs — verify against the repo's plugins before adopting.
 The gate-result cache in the pre-commit hook already makes identical-tree reruns free; these are for when the tree genuinely changed.
@@ -52,13 +53,13 @@ The gate-result cache in the pre-commit hook already makes identical-tree reruns
 
 A service-shaped repo declares its configuration as a committed `.env.example` documenting every variable; the real env file is gitignored, and the secret scan keeps it that way.
 A monorepo enters configuration once: `make setup-env` fans per-package env files out of the one root `.env`, so no package's requirements live only in a teammate's shell history.
-Proven in three fleet variants: root example with generated fan-out, per-unit env examples, and gitignored `secrets.env` holding references resolved only at point of use.
+Variants for different shapes: a root example with generated fan-out, per-unit env examples, or a gitignored secrets file holding references resolved only at point of use.
 
 ## Generated artifacts are never hand-edited
 
 An artifact derived from source (an OpenAPI spec, an SDK, a JSON Schema snapshot) is regenerated, never edited — and the hook that detects the drift does the regenerating: when the generating sources change, pre-commit rebuilds the artifact and, if it drifted, stages the regenerated result to ride the same commit.
 Pair it with a First-Principles line forbidding manual edits to the generated paths, so the rule is stated where agents read and enforced where commits happen.
-Convergent in two repos: schema snapshots with a regen target riding the causing commit, and OpenAPI/SDK regeneration auto-staged in pre-commit.
+Examples of the shape: schema snapshots with a regen target riding the causing commit; OpenAPI/SDK regeneration auto-staged in pre-commit.
 
 ## Runbooks with thin shims
 

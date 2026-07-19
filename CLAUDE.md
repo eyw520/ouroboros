@@ -37,7 +37,10 @@ applies the migrations.
   reading a target's docs or history belongs in `adopt`, not in shell.
 - CI templates run `make check` and nothing else; the gate is defined once, in
   the Makefile.
-- Keep templates generic — no project names, no machine-specific paths.
+- The standards stand independently: no template, pattern, decision, or blueprint
+  references a source repository (provenance lives in commit history and memory).
+  No project names, no machine-specific paths, and every entry must justify
+  itself on its own reasoning.
 
 ## Conventions
 

@@ -53,4 +53,4 @@ Every new mechanism gets smoke coverage; every new expectation gets a doctor che
 ## Phase 6 — Sync and record
 
 If `templates/AGENTS.md` or a stamped template changed, offer the fleet re-sync (copy + one `chore: Sync ...` commit per repo, gates green).
-Record provenance where the pattern lands ("proven in ..."), so the next reader knows it was earned, not invented.
+Provenance lives in the harvest commit and in memory, never in the landed text: the standards stand independently, so no template, pattern, or decision cites a source repository — an entry that cannot justify itself on its own reasoning is not ready to land.
