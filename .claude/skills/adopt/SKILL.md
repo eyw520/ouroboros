@@ -38,6 +38,10 @@ tell the user why) when the repo is:
 - Scopes: from the histogram. No scopes in history → scopeless (`-s ""`).
   Monorepos may derive scopes dynamically from subdirectories (see the
   commented block in the template hook).
+- **Scopes classify the kind of thing changed, never the instance.** The diff
+  paths already name the instance (`git log -- path/` recovers it); a scope
+  that repeats the path adds nothing. Good: `paper`, `agent`, `infra`, `state`.
+  Bad: one scope per feature, module, or entry — that list only grows.
 
 ## Phase 3 — Stamp
 
