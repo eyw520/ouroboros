@@ -1,0 +1,26 @@
+name: gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # The lint leg needs the shellcheck version the baseline is clean against;
+      # ubuntu's apt version is older and noisier.
+      - run: |
+          curl -sSL https://github.com/koalaman/shellcheck/releases/download/v0.11.0/shellcheck-v0.11.0.linux.x86_64.tar.xz | tar -xJ
+          sudo install shellcheck-v0.11.0/shellcheck /usr/local/bin/shellcheck
+
+      # The gate is defined once, in the Makefile — CI just runs it.
+      - run: make check
