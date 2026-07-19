@@ -57,4 +57,24 @@ git -C "$tmp/repo" add leak.txt
 git -C "$tmp/repo" rm -q --cached leak.txt && rm "$tmp/repo/leak.txt"
 (cd "$tmp/repo" && ./.githooks/secret-scan --tracked > /dev/null 2>&1) || fail "clean repo failed the scan"
 
-echo "PASS  smoke: stamp, hooks, scanner, doctor"
+# --- pre-commit gate cache -----------------------------------------------------
+# A scratch repo whose gate logs each run: two commits of the same tree must run
+# the gate once; changing the tree must run it again; a worktree that diverges
+# from the index must never be trusted as a cache hit.
+printf 'check:\n\t@echo ran >> gate.log\n' > "$tmp/repo2/Makefile"
+printf 'gate.log\n' > "$tmp/repo2/.gitignore"
+printf 'v1\n' > "$tmp/repo2/f.txt"
+git -C "$tmp/repo2" add Makefile .gitignore f.txt
+(cd "$tmp/repo2" && ./.githooks/pre-commit > /dev/null 2>&1) || fail "gate-cache: first run failed"
+[ "$(wc -l < "$tmp/repo2/gate.log")" -eq 1 ] || fail "gate-cache: first run did not run the gate"
+(cd "$tmp/repo2" && ./.githooks/pre-commit > /dev/null 2>&1) || fail "gate-cache: cached run failed"
+[ "$(wc -l < "$tmp/repo2/gate.log")" -eq 1 ] || fail "gate-cache: identical tree reran the gate"
+printf 'v2\n' > "$tmp/repo2/f.txt"
+git -C "$tmp/repo2" add f.txt
+(cd "$tmp/repo2" && ./.githooks/pre-commit > /dev/null 2>&1) || fail "gate-cache: changed-tree run failed"
+[ "$(wc -l < "$tmp/repo2/gate.log")" -eq 2 ] || fail "gate-cache: changed tree skipped the gate"
+printf 'v3-unstaged\n' > "$tmp/repo2/f.txt"
+(cd "$tmp/repo2" && ./.githooks/pre-commit > /dev/null 2>&1) || fail "gate-cache: dirty-worktree run failed"
+[ "$(wc -l < "$tmp/repo2/gate.log")" -eq 3 ] || fail "gate-cache: dirty worktree was trusted as a cache hit"
+
+echo "PASS  smoke: stamp, hooks, scanner, doctor, gate-cache"
