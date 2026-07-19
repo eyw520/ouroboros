@@ -54,6 +54,12 @@ A service-shaped repo declares its configuration as a committed `.env.example` d
 A monorepo enters configuration once: `make setup-env` fans per-package env files out of the one root `.env`, so no package's requirements live only in a teammate's shell history.
 Proven in three fleet variants: root example with generated fan-out, per-unit env examples, and gitignored `secrets.env` holding references resolved only at point of use.
 
+## Generated artifacts are never hand-edited
+
+An artifact derived from source (an OpenAPI spec, an SDK, a JSON Schema snapshot) is regenerated, never edited — and the hook that detects the drift does the regenerating: when the generating sources change, pre-commit rebuilds the artifact and, if it drifted, stages the regenerated result to ride the same commit.
+Pair it with a First-Principles line forbidding manual edits to the generated paths, so the rule is stated where agents read and enforced where commits happen.
+Convergent in two repos: schema snapshots with a regen target riding the causing commit, and OpenAPI/SDK regeneration auto-staged in pre-commit.
+
 ## Runbooks with thin shims
 
 When a repo has recurring operational sessions, the playbook lives once as a runbook file, and each `.claude/commands/*` slash command is a thin shim that loads and executes it.
