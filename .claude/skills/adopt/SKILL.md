@@ -66,6 +66,9 @@ tell the user why) when the repo is:
   the repo's gate is a script, wrap it (`check: ./tests/run.sh`).
 - CI: `.github/workflows/gate.yml` = toolchain setup + `make check`, nothing
   else — only when the repo has a GitHub remote.
+- Shape-specific extras: consult `PATTERNS.md` (verify skill, zone guard,
+  billable-test markers, the doctor verb, status taxonomy, runbooks) and offer
+  the ones the repo's shape calls for — they are opt-in, not part of the stamp.
 
 ## Phase 5 — Verify the gate (where CI bugs actually hide)
 

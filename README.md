@@ -42,8 +42,11 @@ templates/
   github/workflows/gate.yml  # CI = `make check`, nothing else
   python/                    # Makefile + ruff.toml + mypy.ini + pyrightconfig.json (uv, py311, line 120)
   node/                      # Makefile mapping the same verbs onto npm scripts
+  skills/verify/             # "prove it runs" skill skeleton (opt-in, see PATTERNS.md)
+  zones/                     # PreToolUse zone guard for agent-co-authored repos (opt-in)
 init.sh                      # stamp a repo / audit drift (install-if-missing, never overwrites)
 doctor.sh                    # read-only conformance audit + config suggestion
+PATTERNS.md                  # shape-specific gold standards, applied per repo by /adopt
 .claude/skills/adopt/        # the adoption playbook, invocable as /adopt <repo>
 ```
 
