@@ -1,5 +1,8 @@
 # <project> — <one-line description>
 
+See README.md for the human-facing overview.
+This file is the map, invariants, and conventions for working in the code — don't duplicate one into the other.
+
 @AGENTS.md
 
 ## Overview
