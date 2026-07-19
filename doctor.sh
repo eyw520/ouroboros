@@ -4,7 +4,7 @@
 # Prints PASS/WARN/FAIL per check, a config suggestion derived from commit
 # history, and exits nonzero only on FAIL. Never mutates the target.
 
-std_root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+std_root=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 tpl="$std_root/templates"
 
 target="$1"
@@ -23,7 +23,7 @@ echo "== standards doctor: $target =="
 hook="$target/.githooks/commit-msg"
 if [ -f "$hook" ]; then
   pass ".githooks/commit-msg exists"
-  [ -x "$hook" ] && pass "hook is executable" || fail "hook is not executable (chmod +x)"
+  if [ -x "$hook" ]; then pass "hook is executable"; else fail "hook is not executable (chmod +x)"; fi
   types=$(sed -n 's/^types="\(.*\)"$/\1/p' "$hook")
   scopes=$(sed -n 's/^scopes="\(.*\)"$/\1/p' "$hook")
   if [ -n "$types" ]; then
@@ -33,6 +33,17 @@ if [ -f "$hook" ]; then
   fi
 else
   fail "no .githooks/commit-msg (init.sh installs one; derive types/scopes from the histogram below)"
+fi
+
+if [ -f "$target/.githooks/pre-commit" ]; then
+  pass ".githooks/pre-commit exists (gate-green-before-commit is enforced)"
+else
+  warn "no .githooks/pre-commit — gate-green-before-commit is prose only (init.sh installs one)"
+fi
+if [ -x "$target/.githooks/secret-scan" ]; then
+  pass ".githooks/secret-scan exists"
+else
+  warn "no .githooks/secret-scan (init.sh installs it; pre-commit and doctor call it)"
 fi
 
 hookspath=$(git -C "$target" config core.hooksPath)
@@ -85,7 +96,7 @@ else
   warn "no CLAUDE.md (templates/CLAUDE.md is the skeleton)"
 fi
 
-[ -f "$target/.editorconfig" ] && pass ".editorconfig present" || warn "no .editorconfig (init.sh installs it)"
+if [ -f "$target/.editorconfig" ]; then pass ".editorconfig present"; else warn "no .editorconfig (init.sh installs it)"; fi
 
 # --- Makefile verb contract --------------------------------------------------
 mk=""

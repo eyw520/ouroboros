@@ -13,7 +13,7 @@ usage() {
   exit 1
 }
 
-std_root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+std_root=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 tpl="$std_root/templates"
 
 types="feat|fix|chore|clean|revert"
@@ -56,6 +56,10 @@ sed -e "s,^types=.*,types=\"$types\"," \
 install "$hook_tmp" ".githooks/commit-msg"
 chmod +x "$target/.githooks/commit-msg"
 rm -f "$hook_tmp"
+
+install "$tpl/githooks/pre-commit" ".githooks/pre-commit"
+install "$tpl/githooks/secret-scan" ".githooks/secret-scan"
+chmod +x "$target/.githooks/pre-commit" "$target/.githooks/secret-scan"
 
 install "$tpl/AGENTS.md" "AGENTS.md"
 install "$tpl/CLAUDE.md" "CLAUDE.md"
