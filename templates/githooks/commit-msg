@@ -13,7 +13,15 @@ scopes=""
 # done
 
 commit_msg_file="$1"
-subject=$(head -1 "$commit_msg_file")
+subject=$(grep -v '^#' "$commit_msg_file" | head -1)
+body=$(grep -v '^#' "$commit_msg_file" | tail -n +2 | grep -v '^[[:space:]]*$' || true)
+
+if [ -n "$body" ]; then
+  echo ""
+  echo "ERROR: Subject line only — no body, no Co-Authored-By or other trailers."
+  echo ""
+  exit 1
+fi
 
 if [ -n "$scopes" ]; then
   pattern="^($types)\(($scopes)\): [A-Z].*\.$"
