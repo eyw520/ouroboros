@@ -48,6 +48,12 @@ When the test leg dominates a gate that runs per commit, two opt-in accelerators
 `dmypy` (the mypy daemon) makes warm typechecks near-instant, but misbehaves with some plugin-heavy configs — verify against the repo's plugins before adopting.
 The gate-result cache in the pre-commit hook already makes identical-tree reruns free; these are for when the tree genuinely changed.
 
+## The env contract
+
+A service-shaped repo declares its configuration as a committed `.env.example` documenting every variable; the real env file is gitignored, and the secret scan keeps it that way.
+A monorepo enters configuration once: `make setup-env` fans per-package env files out of the one root `.env`, so no package's requirements live only in a teammate's shell history.
+Proven in three fleet variants: root example with generated fan-out, per-unit env examples, and gitignored `secrets.env` holding references resolved only at point of use.
+
 ## Runbooks with thin shims
 
 When a repo has recurring operational sessions, the playbook lives once as a runbook file, and each `.claude/commands/*` slash command is a thin shim that loads and executes it.
