@@ -1,55 +1,27 @@
-# standards — canonical cross-project DX conventions
+# standards — canonical cross-project engineering conventions
 
-This repo is **agent-forward**: it gets added to sessions (`/add-dir`) so an
-agent can drive repo housekeeping. Conventions flow in both directions:
+Agent-forward: this repo is added to sessions so an agent can drive repo housekeeping.
+Route by request:
 
-- **Outbound** — the user asks to standardize, audit, adopt, or "run the
-  standard" on a repo, or asks what a repo is missing: run `./doctor.sh <repo>`
-  (read-only conformance report, drift checks, commit-history histogram), then
-  follow `.claude/skills/adopt/SKILL.md` (`/adopt <repo>`) — classify → survey →
-  configure → stamp → integrate → verify → commit → report. The classification
-  gate (machine-written repos, forks, opt-outs) is not skippable.
-  `./init.sh [-t types] [-s scopes] [-l python|node|none] [-c] <repo>` is the
-  mechanical stamp; install-if-missing only.
-- **Inbound** — the user attaches a repo to learn from it, or asks to ingest or
-  harvest its practices: follow `.claude/skills/harvest/SKILL.md`
-  (`/harvest <repo>`) — survey the surplus beyond the standard, verify each
-  candidate actually works, classify it to a destination, propose before
-  landing, then land one commit per change and offer the fleet sync.
-- **Greenfield** — the user asks to spin up a new app: follow
-  `.claude/skills/spinup/SKILL.md` (`/spinup <blueprint> <path>`), which
-  executes `blueprints/<name>/BLUEPRINT.md` verbatim — scaffold, stamp, verify
-  end-to-end, first commit through the hooks.
+- **Standardize/audit a repo** → `./doctor.sh <repo>`, then the `adopt` skill (`/adopt <repo>`).
+  `./init.sh [-t types] [-s scopes] [-l python|node|none] [-c] <repo>` is the mechanical stamp (install-if-missing only).
+- **Learn from / ingest a repo** → the `harvest` skill (`/harvest <repo>`).
+- **Spin up a new app** → the `spinup` skill (`/spinup <blueprint> <path>`), executing `blueprints/<name>/BLUEPRINT.md` verbatim.
 
-`DECISIONS.md` is the tooling-verdict register (what supersedes what, why, and
-the migration recipe); the doctor warns on superseded tooling, and `/adopt`
-applies the migrations.
+`DECISIONS.md` registers tooling verdicts with migration recipes; the doctor warns on superseded tooling.
+`PATTERNS.md` holds opt-in, shape-specific patterns.
 
 ## Invariants
 
-- `templates/githooks/commit-msg` is the single source of truth for the commit
-  format; `templates/AGENTS.md` describes it but defers to the hook. Change them
-  together in one commit.
-- `init.sh` never overwrites an existing file in a target repo — only
-  install-if-missing and drift reporting. `doctor.sh` never mutates a target at
-  all. Keep both POSIX sh.
-- Judgment stays in the skill, mechanics stay in the scripts: anything requiring
-  reading a target's docs or history belongs in `adopt`, not in shell.
-- CI templates run `make check` and nothing else; the gate is defined once, in
-  the Makefile.
-- The standards stand independently: no template, pattern, decision, or blueprint
-  references a source repository (provenance lives in commit history and memory).
-  No project names, no machine-specific paths, and every entry must justify
-  itself on its own reasoning.
+- `templates/githooks/commit-msg` is the single source of truth for the commit format; docs defer to it. Change hook and docs together.
+- `init.sh` never overwrites; `doctor.sh` never mutates. Both stay POSIX sh.
+- Judgment lives in the skills, mechanics in the scripts.
+- CI runs `make check` and nothing else.
+- The standards stand independently: no template, pattern, decision, or blueprint references a source repository (provenance lives in commit history and memory); no project names, no machine-specific paths; every entry justifies itself on its own reasoning.
+- A field lesson lands in the skill it improves, in the same commit as the change that motivated it.
 
 ## Conventions
 
-- Commit messages: `<type>: Title case ending with period.` with type ∈
-  feat|fix|chore|clean|revert (enforced by `.githooks/commit-msg`; this repo uses
-  the scopeless form, and the hook rejects bodies).
-  Subject line only — no body, no Co-Authored-By or other trailers.
-  One logical change per commit. Commit locally and stop: pushing is the
-  operator's review step.
-- A playbook lesson learned in the field (a new fresh-checkout pitfall, a new
-  skip category) belongs in `.claude/skills/adopt/SKILL.md` in the same commit
-  as the change it motivated.
+- Commit messages: `<type>: Title case ending with period.`, type ∈ feat|fix|chore|clean|revert (enforced by `.githooks/commit-msg`; scopeless, body-rejecting, cosmetic-auto-fixing).
+  Subject only — no trailers. One logical change per commit; gate green before each (enforced by pre-commit). Commit locally and stop: pushing is the operator's review step.
+- Prose is one sentence per line; keep every file as lean as its job allows — these files are loaded into agent context.
