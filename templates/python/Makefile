@@ -1,4 +1,6 @@
 # Dev workflow. `make dev` once after cloning; `make check` before every commit.
+# ruff and mypy cache incrementally by default (.ruff_cache/.mypy_cache —
+# gitignore them, never disable them): a warm no-change gate should cost seconds.
 .PHONY: check lint types test fmt hooks dev
 
 # The gate — run all of it before declaring work done.

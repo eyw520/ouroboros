@@ -32,6 +32,13 @@ Run it at session start; this repo's own `doctor.sh` is the reference shape.
 A tool an agent consumes should classify its failures instead of leaking tracebacks: `ok` (payload is the result), `transient` (upstream blip — wait `retry_after` seconds and retry), `permanent` (bad input or collision — fix the input, do not retry).
 The classification lives at the network edge in one place, and every caller acts systematically instead of parsing error text.
 
+## Fast gates for slow suites
+
+When the test leg dominates a gate that runs per commit, two opt-in accelerators exist beyond the standard caches; both trade a little trust for a lot of time, so keep CI running the full uncached gate either way.
+`pytest-testmon` runs only the tests whose covered code changed — right for suites in the minutes, wrong for suites already under a minute (overhead eats the win).
+`dmypy` (the mypy daemon) makes warm typechecks near-instant, but misbehaves with some plugin-heavy configs — verify against the repo's plugins before adopting.
+The gate-result cache in the pre-commit hook already makes identical-tree reruns free; these are for when the tree genuinely changed.
+
 ## Runbooks with thin shims
 
 When a repo has recurring operational sessions, the playbook lives once as a runbook file, and each `.claude/commands/*` slash command is a thin shim that loads and executes it.

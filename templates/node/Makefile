@@ -1,4 +1,7 @@
 # Dev workflow. `make dev` once after cloning; `make check` before every commit.
+# Every leg must cache: eslint --cache, prettier --cache (on check AND write),
+# tsc --incremental (set "incremental": true in tsconfig; gitignore *.tsbuildinfo),
+# cspell --cache. A warm no-change gate should cost seconds.
 .PHONY: check lint types test fmt hooks dev
 
 # The gate — run all of it before declaring work done.
