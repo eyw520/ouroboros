@@ -9,4 +9,4 @@ Add this repo to a Claude Code session (`/add-dir`) and ask it to standardize, a
 
 Manual entry points: `./doctor.sh <repo>` (read-only audit) and `./init.sh [-t types] [-s scopes] [-l python|node] [-c] <repo>` (install-if-missing stamp).
 Reference: `PATTERNS.md` (opt-in, shape-specific), `DECISIONS.md` (tooling verdicts + migration recipes), `templates/` (the stamped files).
-The convention in one line: `<type>(<scope>): Title case ending with period.` — subject only, one logical change per commit, gate green before each, commit locally and stop.
+The convention in one line: `<type>(<scope>): Sentence case ending with period.` — subject only, one logical change per commit, gate green before each, commit locally and stop.
