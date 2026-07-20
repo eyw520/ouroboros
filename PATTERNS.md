@@ -76,3 +76,8 @@ Annotation honesty is part of the fence: a generic tool that can invoke write me
 
 An agent-facing API server teaches the agent how to use it: a capabilities resource enumerating the surface, a method-docs tool mapping any upstream method name to its official documentation URL and the generic call shape to use, and the provider's canonical doc URLs exposed as a resource.
 Pair curated helpers for the common workflows with a generic passthrough for everything else: the curated tools carry the ergonomics, and the passthrough plus method-docs means a new provider capability costs zero server code — the alternative is a tool-per-method treadmill that never ends.
+
+## Declarative credential routing
+
+When a provider requires different credentials for different methods (search wants the user identity, write families want the bot identity), the who-needs-what table is config, not control flow: a rule list mapping method prefixes and exact names to a credential kind, resolved per call, falling back to the default credential when the preferred kind is not configured.
+Callers can still pin a kind explicitly; an unknown kind fails fast listing the allowed set, so the taxonomy of identities stays discoverable from the error itself.
