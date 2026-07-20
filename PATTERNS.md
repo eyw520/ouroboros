@@ -36,6 +36,7 @@ A tool an agent consumes should classify its failures instead of leaking traceba
 The classification lives at the network edge in one place, and every caller acts systematically instead of parsing error text.
 When errors cross a text-only boundary, the classified error renders its status, retry delay, and detail as trailing `key=value` pairs in its own message, so even a client that only sees error strings keeps the machine-readable verdict.
 Base the classified error type on the language's generic runtime error so existing catch sites keep working — adoption should not require touching every caller.
+The taxonomy is a discipline, not a library: realize it as a shared package where dependencies are free, or as a dozen lines of inline stdlib where the tool must ship dependency-free (a classified error type plus a status tag rendered into the message) — the standard is the classification, not any one implementation.
 
 ## Scoped gates for slow monorepos
 
@@ -84,6 +85,7 @@ Interactive and headless/scheduled runs stay in lockstep because neither duplica
 A tool that accepts arbitrary upstream method names hands the agent the whole provider API — which is the point — so the safety lives in the transport layer, not in curating the tool list.
 Four fences, enforced in one shared place: credentials enter only through the environment (any credential-named key in a payload is rejected, recursively); credential-shaped strings are redacted from every response, including echo-style methods, so the model never sees a token; outbound requests are HTTPS-only against an allowlisted host set, re-validated on every redirect hop, because a compliant first URL can 302 anywhere; downloads are byte-capped.
 Annotation honesty is part of the fence: a generic tool that can invoke write methods is never annotated read-only — paginated variants included, because a cursor loop over a write method is still a write, and clients skip confirmation for tools that claim read-only.
+The fences are a discipline realized in whatever the server is built from, not a shared dependency: an open-fetch tool with no fixed host to allowlist still fences in ~40 lines of stdlib by rejecting non-web schemes and literal internal hosts and re-validating every redirect, so a server that must ship dependency-free is not exempt from the standard.
 
 ## The self-describing tool surface
 
