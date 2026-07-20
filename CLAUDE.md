@@ -1,4 +1,4 @@
-# standards — canonical cross-project engineering conventions
+# ouroboros — canonical cross-project engineering conventions
 
 Agent-forward: this repo is added to sessions so an agent can drive repo housekeeping.
 Route by request:

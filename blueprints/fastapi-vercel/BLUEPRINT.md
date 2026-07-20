@@ -35,7 +35,7 @@ vercel.json             # builds: frontend (next) + backend/api (python)
 2. Frontend: `pnpm create next-app@latest frontend --ts --eslint --app --src-dir --no-tailwind --use-pnpm` (adjust flags deliberately, and record why here when you do).
 3. `vercel.json`: two builds (`frontend` via `@vercel/next`, `backend/api/index.py` via `@vercel/python`) and a route sending `/api/(.*)` to the backend.
 4. `make api-sync`: run the app, `curl /openapi.json` into `frontend/lib/api/openapi.json`, generate the client (`pnpm dlx openapi-typescript`), then format.
-5. Governance: `<standards>/init.sh -s "" -l python -c <repo>` — hooks (auto-fix commit-msg, secret-scan, cached pre-commit), `.editorconfig`, AGENTS.md, CI gate.
+5. Governance: `<ouroboros>/init.sh -s "" -l python -c <repo>` — hooks (auto-fix commit-msg, secret-scan, cached pre-commit), `.editorconfig`, AGENTS.md, CI gate.
    The python preset's Makefile DIFFERS from this blueprint's (api-sync verbs) — this blueprint's wins; reconcile by hand.
 
 ## Verify (before the first commit — prove it runs, not just that it lints)

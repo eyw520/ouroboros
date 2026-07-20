@@ -17,7 +17,7 @@ pass() { echo "PASS  $1"; }
 warn() { echo "WARN  $1"; warns=$((warns + 1)); }
 fail() { echo "FAIL  $1"; fails=$((fails + 1)); }
 
-echo "== standards doctor: $target =="
+echo "== ouroboros doctor: $target =="
 
 # --- Commit hook -------------------------------------------------------------
 hook="$target/.githooks/commit-msg"

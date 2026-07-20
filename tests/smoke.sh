@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke suite for the standards tooling: stamps scratch repos and asserts the
+# Smoke suite for the ouroboros tooling: stamps scratch repos and asserts the
 # hook, scanner, and doctor behave. Zero dependencies beyond git + bash.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1

@@ -16,7 +16,7 @@ Not harvestable: domain machinery, a fork's upstream conventions, aspirational c
 
 ## Phase 1 — Survey for the surplus
 
-1. `<standards>/doctor.sh <repo>` — the conformance baseline; ignore the gaps, note what it can't see.
+1. `<ouroboros>/doctor.sh <repo>` — the conformance baseline; ignore the gaps, note what it can't see.
 2. Read what ENFORCES: hooks, CI workflows, Makefile targets, tool configs, `.claude/` hooks and skills, test-suite structure.
 3. Read what DOCUMENTS: CLAUDE.md/AGENTS.md sections the standard lacks — invariants-with-reasons, gotchas, principles.
 4. Diff mentally against `templates/`, `AGENTS.md`, `PATTERNS.md`, `doctor.sh`: anything present here already is not a finding.

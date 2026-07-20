@@ -36,4 +36,4 @@ If asked to publish: `gh repo create` (private unless told otherwise), push, and
 ## Phase 5 — Record
 
 Seed the new repo's CLAUDE.md from the blueprint's Decisions and Gotchas (audience split: README for humans).
-Report what was built, what verify proved, and anything the blueprint got wrong — then fold that correction into the blueprint in the standards repo, same commit discipline as any harvest.
+Report what was built, what verify proved, and anything the blueprint got wrong — then fold that correction into the blueprint in the ouroboros repo, same commit discipline as any harvest.

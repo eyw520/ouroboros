@@ -24,7 +24,7 @@ tell the user why) when the repo is:
 
 ## Phase 1 — Survey
 
-1. `<standards>/doctor.sh <target>` — conformance report + a type(scope)
+1. `<ouroboros>/doctor.sh <target>` — conformance report + a type(scope)
    histogram of the last 100 subjects.
 2. Read the target's CLAUDE.md, commit hook, Makefile, and CI workflow.
 3. Note every drift: hook vs CLAUDE.md prose vs actual history. **The hook is
@@ -45,7 +45,7 @@ tell the user why) when the repo is:
 
 ## Phase 3 — Stamp
 
-`<standards>/init.sh [-t types] [-s scopes] [-l python|node|none] [-c] <target>`
+`<ouroboros>/init.sh [-t types] [-s scopes] [-l python|node|none] [-c] <target>`
 
 - It installs only missing files and wires `core.hooksPath`. `DIFFERS` lines
   are yours to reconcile by hand — never blind-overwrite a repo's own file.

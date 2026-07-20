@@ -1,4 +1,4 @@
-# standards
+# Ouroboros
 
 Canonical engineering conventions, templates, and stack blueprints — agent-forward by design.
 Add this repo to a Claude Code session (`/add-dir`) and ask it to standardize, audit, harvest, or spin up; `CLAUDE.md` routes the agent from there.
