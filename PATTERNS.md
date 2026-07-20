@@ -65,3 +65,9 @@ Examples of the shape: schema snapshots with a regen target riding the causing c
 
 When a repo has recurring operational sessions, the playbook lives once as a runbook file, and each `.claude/commands/*` slash command is a thin shim that loads and executes it.
 Interactive and headless/scheduled runs stay in lockstep because neither duplicates the steps.
+
+## Fencing a generic API tool for agents
+
+A tool that accepts arbitrary upstream method names hands the agent the whole provider API — which is the point — so the safety lives in the transport layer, not in curating the tool list.
+Four fences, enforced in one shared place: credentials enter only through the environment (any credential-named key in a payload is rejected, recursively); credential-shaped strings are redacted from every response, including echo-style methods, so the model never sees a token; outbound requests are HTTPS-only against an allowlisted host set, re-validated on every redirect hop, because a compliant first URL can 302 anywhere; downloads are byte-capped.
+Annotation honesty is part of the fence: a generic tool that can invoke write methods is never annotated read-only — paginated variants included, because a cursor loop over a write method is still a write, and clients skip confirmation for tools that claim read-only.
