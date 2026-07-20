@@ -52,6 +52,16 @@ Both are candidates, not verdicts: trial one against the repo's own suite and pr
 `dmypy` (the mypy daemon) makes warm typechecks near-instant, but misbehaves with some plugin-heavy configs — verify against the repo's plugins before adopting.
 The gate-result cache in the pre-commit hook already makes identical-tree reruns free; these are for when the tree genuinely changed.
 
+## Parallel test suites
+
+When the test leg dominates the gate and tests are mostly independent, run them across cores: `pytest -n auto --dist loadgroup` via `pytest-xdist` (jest/vitest parallelize by default — check they have not been forced serial).
+Skip when the suite is already fast — worker startup costs seconds, so a sub-30s suite can get slower — or when tests share mutable state you cannot isolate or group.
+Shared-state tests are grouped, not abandoned: a module-level `pytestmark = pytest.mark.xdist_group("<resource>")` pins every test touching one resource (a message bus, a rate limiter, a database) to a single worker while the rest of the suite fans out; `--dist loadgroup` is what honors the groups.
+Register `xdist_group(name)` in the markers list (with `--strict-markers`) so a typo'd group fails loudly instead of silently degrouping.
+Resist adding a separate serial lane: grouping makes "cannot parallelize" a per-resource property instead of a suite property, so one command still runs everything.
+Proof: a `--durations=0` variant target names the slow tests; the parallel and serial runs must report identical pass/skip counts (a diverging count is a hidden ordering dependency), and a CPU-bound suite in the minutes should drop to tens of seconds on laptop-class cores.
+Composes with the other gate accelerators — the tree-hash cache (free), testmon (run less), this (run wider), dmypy (stay warm) — they stack.
+
 ## The env contract
 
 A service-shaped repo declares its configuration as a committed `.env.example` documenting every variable; the real env file is gitignored, and the secret scan keeps it that way.
