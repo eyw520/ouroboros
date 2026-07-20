@@ -1,6 +1,7 @@
 # Patterns
 
 Shape-specific gold standards: reach for these when a repo has the shape, skip them when it doesn't.
+Every entry carries its applicability contract: the shape that triggers it, the counter-indication (mandatory — a pattern without a "when not" is a mandate in disguise), the mechanics, and the proof that it is working.
 Every entry stands on its own reasoning — no entry cites where it came from, because a pattern that needs its lineage to justify itself is not a standard.
 Unlike `templates/` stamped by `init.sh`, everything here is opt-in — the adopt skill (Phase 4) decides per repo.
 
