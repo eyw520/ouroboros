@@ -17,6 +17,36 @@ pass() { echo "PASS  $1"; }
 warn() { echo "WARN  $1"; warns=$((warns + 1)); }
 fail() { echo "FAIL  $1"; fails=$((fails + 1)); }
 
+# --- Template drift classification --------------------------------------------
+# A target's copy of a stamped file is CURRENT (matches the template as it
+# stands), STALE (matches an older shipped version verbatim — safe to re-stamp),
+# or DIVERGED (matches no version ever shipped — deliberate; reconcile by hand).
+# Judged against this repo's own git history so targets carry no version
+# markers; a shallow or history-less copy of this repo degrades stale to diverged.
+norm_copy() { # $1 = strip: drop per-repo config lines; anything else: pass through
+  if [ "$1" = strip ]; then grep -v -e '^types="' -e '^scopes="'; else cat; fi
+}
+template_status() { # <target-file> <template-rel-path> [strip]
+  ts_tmp=$(mktemp)
+  norm_copy "${3:-plain}" < "$1" > "$ts_tmp"
+  if norm_copy "${3:-plain}" < "$std_root/$2" | cmp -s - "$ts_tmp"; then
+    rm -f "$ts_tmp"
+    echo current
+    return
+  fi
+  git -C "$std_root" rev-list HEAD -- "$2" 2>/dev/null | {
+    s=diverged
+    while IFS= read -r c; do
+      if git -C "$std_root" cat-file blob "$c:$2" 2>/dev/null | norm_copy "${3:-plain}" | cmp -s - "$ts_tmp"; then
+        s=stale
+        break
+      fi
+    done
+    echo "$s"
+  }
+  rm -f "$ts_tmp"
+}
+
 echo "== ouroboros doctor: $target =="
 
 # --- Commit hook -------------------------------------------------------------
@@ -28,6 +58,11 @@ if [ -f "$hook" ]; then
   scopes=$(sed -n 's/^scopes="\(.*\)"$/\1/p' "$hook")
   if [ -n "$types" ]; then
     pass "hook is canonical-shaped (types=\"$types\" scopes=\"$scopes\")"
+    case "$(template_status "$hook" "templates/githooks/commit-msg" strip)" in
+      current) pass "hook matches the current template (config aside)" ;;
+      stale)   warn "hook is a stale template copy (config aside) — re-stamp from the template" ;;
+      *)       warn "hook diverged from every shipped template version — deliberate? reconcile by hand" ;;
+    esac
   else
     warn "hook is not the canonical template (no types= variable); its regex is still the source of truth"
   fi
@@ -41,11 +76,21 @@ if [ -f "$target/.githooks/pre-commit" ]; then
   else
     fail ".githooks/pre-commit is not executable — git silently skips it (chmod +x)"
   fi
+  case "$(template_status "$target/.githooks/pre-commit" "templates/githooks/pre-commit")" in
+    current) : ;;
+    stale)   warn "pre-commit is a stale template copy — re-stamp from the template" ;;
+    *)       warn "pre-commit diverged from every shipped template version — deliberate (scoped variant)? keep it reconciled" ;;
+  esac
 else
   warn "no .githooks/pre-commit — gate-green-before-commit is prose only (init.sh installs one)"
 fi
 if [ -x "$target/.githooks/secret-scan" ]; then
   pass ".githooks/secret-scan exists"
+  case "$(template_status "$target/.githooks/secret-scan" "templates/githooks/secret-scan")" in
+    current) : ;;
+    stale)   warn "secret-scan is a stale template copy — upstream patterns are newer; re-stamp and re-apply local exemptions" ;;
+    *)       warn "secret-scan diverged from every shipped template version — local extensions are fine, but fold in upstream pattern updates" ;;
+  esac
 else
   warn "no .githooks/secret-scan (init.sh installs it; pre-commit and doctor call it)"
 fi
@@ -77,11 +122,11 @@ fi
 
 # --- Docs --------------------------------------------------------------------
 if [ -f "$target/AGENTS.md" ]; then
-  if cmp -s "$tpl/AGENTS.md" "$target/AGENTS.md"; then
-    pass "AGENTS.md present and identical to the template"
-  else
-    warn "AGENTS.md drifted from the template (diff \"$tpl/AGENTS.md\" \"$target/AGENTS.md\")"
-  fi
+  case "$(template_status "$target/AGENTS.md" "templates/AGENTS.md")" in
+    current) pass "AGENTS.md present and identical to the template" ;;
+    stale)   warn "AGENTS.md is a stale template copy — re-sync from templates/AGENTS.md" ;;
+    *)       warn "AGENTS.md diverged from every shipped template version (diff \"$tpl/AGENTS.md\" \"$target/AGENTS.md\")" ;;
+  esac
 else
   fail "no AGENTS.md (init.sh installs it)"
 fi

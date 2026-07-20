@@ -94,4 +94,17 @@ printf 'v3-unstaged\n' > "$tmp/repo2/f.txt"
 (cd "$tmp/repo2" && ./.githooks/pre-commit > /dev/null 2>&1) || fail "gate-cache: dirty-worktree run failed"
 [ "$(wc -l < "$tmp/repo2/gate.log")" -eq 3 ] || fail "gate-cache: dirty worktree was trusted as a cache hit"
 
+# --- doctor: template drift classification ------------------------------------
+# A locally extended secret-scan reads DIVERGED; a copy matching an older shipped
+# template reads STALE (skipped when history is shallow or the template never changed).
+echo '# local extension' >> "$tmp/repo/.githooks/secret-scan"
+out=$(./doctor.sh "$tmp/repo") || fail "doctor errored on a diverged secret-scan"
+echo "$out" | grep -q 'secret-scan diverged' || fail "doctor missed the diverged secret-scan"
+first=$(git rev-list HEAD -- templates/AGENTS.md | tail -1)
+if [ -n "$first" ] && ! git cat-file blob "$first:templates/AGENTS.md" 2>/dev/null | cmp -s - templates/AGENTS.md; then
+  git cat-file blob "$first:templates/AGENTS.md" > "$tmp/repo/AGENTS.md"
+  out=$(./doctor.sh "$tmp/repo") || fail "doctor errored on a stale AGENTS.md"
+  echo "$out" | grep -q 'AGENTS.md is a stale template copy' || fail "doctor missed the stale AGENTS.md"
+fi
+
 echo "PASS  smoke: stamp, hooks, scanner, doctor, gate-cache"

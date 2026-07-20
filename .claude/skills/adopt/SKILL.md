@@ -49,6 +49,9 @@ tell the user why) when the repo is:
 
 - It installs only missing files and wires `core.hooksPath`. `DIFFERS` lines
   are yours to reconcile by hand — never blind-overwrite a repo's own file.
+- The doctor pre-classifies drift: a **stale** copy (matches an older template
+  verbatim) is safe to overwrite with the current template; a **diverged** copy
+  is deliberate — reconcile by hand.
 - An existing hook that already matches history stays; replace a hook only
   when it is wrong (e.g. rejects the format the repo's own docs mandate).
 
