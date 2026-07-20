@@ -82,6 +82,17 @@ git -C "$tmp/repo" add leak.txt
 git -C "$tmp/repo" rm -q --cached leak.txt && rm "$tmp/repo/leak.txt"
 (cd "$tmp/repo" && ./.githooks/secret-scan --tracked > /dev/null 2>&1) || fail "clean repo failed the scan"
 
+# --- secret-scan: newer providers, and output never re-leaks the value ---------
+# Fixture values are assembled at runtime so no scanner (ours or a forge's)
+# ever sees a contiguous credential-shaped literal in this file.
+printf 'g=%s\ns=%s\n' "AIzaSyA$(printf '1234567890abcdefghijklmnopqrstuv')" \
+  "sk_live_$(printf 'abcdefghijklmnopqrstuvwx')" > "$tmp/repo/leak2.txt"
+(cd "$tmp/repo" && ./.githooks/secret-scan leak2.txt > /dev/null 2>&1) && fail "scan missed google/stripe-shaped keys"
+out=$( (cd "$tmp/repo" && ./.githooks/secret-scan leak2.txt) 2>&1 || true)
+echo "$out" | grep -q 'AIzaSyA1234567890' && fail "scan output re-leaked the secret value"
+echo "$out" | grep -q 'redacted' || fail "scan did not report the redacted hit"
+rm "$tmp/repo/leak2.txt"
+
 # --- pre-commit gate cache -----------------------------------------------------
 # A scratch repo whose gate logs each run: two commits of the same tree must run
 # the gate once; changing the tree must run it again; a worktree that diverges
