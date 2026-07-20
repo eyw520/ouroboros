@@ -34,6 +34,12 @@ msg 'feat: Missing scope.' && fail "scoped hook accepted a scopeless subject"
 msg 'feet(all): Wrong type.' && fail "hook accepted a wrong type"
 msg 'garbage' && fail "hook accepted garbage"
 
+# --- commit-msg: git-generated messages pass untouched --------------------------
+msg 'fixup! feat(all): Anything at all' || fail "hook rejected a fixup! subject"
+msg "Merge branch 'main' into feature" || fail "hook rejected a merge subject"
+printf 'Revert "feat(all): Ok."\n\nThis reverts commit 123abc.\n' > "$tmp/m"
+"$tmp/repo/.githooks/commit-msg" "$tmp/m" > /dev/null 2>&1 || fail "hook rejected a git-generated revert"
+
 # --- commit-msg: cosmetic auto-fix ---------------------------------------------
 msg 'feat(all): add user auth' || fail "hook rejected an auto-fixable subject"
 [ "$(head -1 "$tmp/m")" = 'feat(all): Add user auth.' ] || fail "auto-fix produced: $(head -1 "$tmp/m")"

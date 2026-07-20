@@ -20,6 +20,12 @@ commit_msg_file="$1"
 subject=$(grep -v '^#' "$commit_msg_file" | head -1)
 body=$(grep -v '^#' "$commit_msg_file" | tail -n +2 | grep -v '^[[:space:]]*$' || true)
 
+# Git-generated messages pass untouched: fixup!/squash! are consumed by
+# autosquash before reaching main, and merge/revert subjects are git's own format.
+case "$subject" in
+  'fixup! '* | 'squash! '* | 'Merge '* | 'Revert "'*) exit 0 ;;
+esac
+
 if [ -n "$body" ]; then
   echo ""
   echo "ERROR: Subject line only — no body, no Co-Authored-By or other trailers."
