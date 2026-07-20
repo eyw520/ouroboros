@@ -63,6 +63,7 @@ printf 'feat(all): Scoped.\n' > "$tmp/m"
 out=$(./init.sh -s "all|agent" -l python -c "$tmp/repo") || fail "init.sh rerun errored"
 echo "$out" | grep -q "installed" && fail "rerun reinstalled something"
 echo "$out" | grep -q "DIFFERS" && fail "rerun reported DIFFERS on an untouched stamp"
+./init.sh -t 'feat,fix' "$tmp/repo" > /dev/null 2>&1 && fail "init.sh accepted a sed-unsafe -t value"
 
 # --- doctor: clean on a fresh stamp, read-only --------------------------------
 before=$(git -C "$tmp/repo" status --porcelain)

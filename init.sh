@@ -32,6 +32,14 @@ while getopts "t:s:l:c" opt; do
 done
 shift $((OPTIND - 1))
 
+# The values are spliced into the hook via sed: anything outside this whitelist
+# (',' '&' '\' regex metacharacters) would silently corrupt the generated hook.
+case "$types|$scopes" in
+  *[!A-Za-z0-9_|-]*)
+    echo "ERROR: -t/-s accept only letters, digits, '_', '-', and '|'."
+    exit 1 ;;
+esac
+
 target="$1"
 [ -n "$target" ] || usage
 [ -d "$target/.git" ] || { echo "ERROR: $target is not a git repository."; exit 1; }
