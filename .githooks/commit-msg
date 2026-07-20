@@ -85,9 +85,11 @@ if [ "$fixed" != "$subject" ] && [ "$(head -1 "$commit_msg_file")" = "$subject" 
   echo "commit-msg: auto-fixed subject cosmetics -> $subject" >&2
 fi
 
+# A subject may open with a backticked identifier instead of a capital —
+# the convention backticks code names, and `x` cannot be capitalized.
 if [ -n "$scopes" ]; then
-  pattern="^($types)\(($scopes)\): [A-Z].*\.$"
+  pattern="^($types)\(($scopes)\): [A-Z\`].*\.$"
 else
-  pattern="^($types): [A-Z].*\.$"
+  pattern="^($types): [A-Z\`].*\.$"
 fi
 printf '%s\n' "$subject" | grep -qE -e "$pattern" || reject

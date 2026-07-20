@@ -45,6 +45,8 @@ msg 'feat(all): add user auth' || fail "hook rejected an auto-fixable subject"
 [ "$(head -1 "$tmp/m")" = 'feat(all): Add user auth.' ] || fail "auto-fix produced: $(head -1 "$tmp/m")"
 msg 'fix(all): Trailing space.   ' || fail "hook rejected a trailing-space subject"
 [ "$(head -1 "$tmp/m")" = 'fix(all): Trailing space.' ] || fail "trailing-space fix produced: $(head -1 "$tmp/m")"
+# shellcheck disable=SC2016  # the backtick is literal, not a substitution
+msg 'feat(all): `init` stays idempotent.' || fail "hook rejected a subject opening with a backticked identifier"
 msg 'feat(all): ' && fail "hook accepted an empty subject after prefix"
 printf 'feat(all): Ok.\n\nA body.\n' > "$tmp/m"
 "$tmp/repo/.githooks/commit-msg" "$tmp/m" > /dev/null 2>&1 && fail "hook accepted a body"
