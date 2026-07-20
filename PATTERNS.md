@@ -19,7 +19,7 @@ Document the zone table in CLAUDE.md — ownership lives in the tree, the guard 
 
 ## Billable tests behind a marker
 
-Tests that hit paid or external services live behind an explicit pytest marker, excluded by default (`-m "not live"`, `--strict-markers`), so the full suite runs fearlessly locally and in CI.
+Tests that hit paid, external, or infrastructure-dependent services live behind an explicit pytest marker, excluded by default (`-m "not live"`, `-m "not integration"`, `--strict-markers`), so the full suite runs fearlessly locally and in CI.
 `templates/python/pytest.ini` is the config — but it is not auto-installed: pytest.ini silently overrides `[tool.pytest]` in pyproject.toml, so add it only where no pytest config exists yet.
 
 ## The doctor verb
