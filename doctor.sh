@@ -145,6 +145,31 @@ else
   warn "no CLAUDE.md (templates/CLAUDE.md is the skeleton)"
 fi
 
+# --- Context budget: keep the always-loaded docs lean ------------------------
+# CLAUDE.md and everything it @-imports load into agent context every session;
+# unbounded growth is runaway context. One-sentence-per-line house style makes
+# the non-blank line count a faithful proxy for prose volume. WARN, not FAIL:
+# a budget is a nudge to trim, not a wall (density beats a hard line ceiling).
+context_budget=150
+if [ -f "$target/CLAUDE.md" ]; then
+  loaded="CLAUDE.md"
+  total=$(grep -vc '^[[:space:]]*$' "$target/CLAUDE.md")
+  # Direct @-imports (one level): a line starting with @ names a path to pull in.
+  imp_list=$(mktemp)
+  sed -n 's/^@\([^[:space:]]*\).*/\1/p' "$target/CLAUDE.md" > "$imp_list"
+  while IFS= read -r imp; do
+    [ -f "$target/$imp" ] || continue
+    total=$((total + $(grep -vc '^[[:space:]]*$' "$target/$imp")))
+    loaded="$loaded + $imp"
+  done < "$imp_list"
+  rm -f "$imp_list"
+  if [ "$total" -le "$context_budget" ]; then
+    pass "always-loaded docs within context budget ($total/$context_budget non-blank lines: $loaded)"
+  else
+    warn "always-loaded docs over context budget ($total/$context_budget non-blank lines: $loaded) — trim CLAUDE.md; it loads every session"
+  fi
+fi
+
 if [ -f "$target/.editorconfig" ]; then pass ".editorconfig present"; else warn "no .editorconfig (init.sh installs it)"; fi
 
 # --- Makefile verb contract --------------------------------------------------

@@ -30,3 +30,4 @@ Route by request:
 - Commit messages: `<type>: Title case ending with period.`, type ∈ feat|fix|chore|clean|revert (enforced by `.githooks/commit-msg`; scopeless, body-rejecting, cosmetic-auto-fixing).
   Subject only — no trailers. One logical change per commit; gate green before each (enforced by pre-commit). Commit locally and stop: pushing is the operator's review step.
 - Prose is one sentence per line; keep every file as lean as its job allows — these files are loaded into agent context.
+  The always-loaded docs (CLAUDE.md + its `@`-imports) carry a line budget the doctor checks; runaway context is a WARN, not a matter of taste.

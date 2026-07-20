@@ -159,4 +159,15 @@ printf '%s\n%s\n' "$tmp/nonexistent" "$tmp/f2" > "$tmp/fleet.txt"
 out=$(FLEET_FILE="$tmp/fleet.txt" ./fleet.sh) && fail "fleet sweep exited zero with a broken repo path"
 echo "$out" | grep -q 'f2' || fail "fleet sweep stopped at the broken repo"
 
+# --- doctor: context budget warns on runaway always-loaded docs ----------------
+# A fresh stamp (small CLAUDE.md + @AGENTS.md) is within budget; padding
+# CLAUDE.md past the ceiling WARNs but never FAILs.
+git init -q "$tmp/cb"
+./init.sh "$tmp/cb" > /dev/null || fail "init.sh errored on cb"
+out=$(./doctor.sh "$tmp/cb") || fail "doctor FAILed on a fresh stamp"
+echo "$out" | grep -q 'always-loaded docs within context budget' || fail "fresh stamp should be within context budget"
+i=0; while [ "$i" -lt 200 ]; do printf 'Filler sentence number %s for the context budget test.\n' "$i" >> "$tmp/cb/CLAUDE.md"; i=$((i + 1)); done
+out=$(./doctor.sh "$tmp/cb") || fail "doctor FAILed on over-budget docs (budget should only WARN)"
+echo "$out" | grep -q 'always-loaded docs over context budget' || fail "doctor did not warn on over-budget docs"
+
 echo "PASS  smoke: stamp, hooks, scanner, doctor, gate-cache, fleet"
