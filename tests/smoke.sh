@@ -94,6 +94,15 @@ echo "$out" | grep -q 'AIzaSyA1234567890' && fail "scan output re-leaked the sec
 echo "$out" | grep -q 'redacted' || fail "scan did not report the redacted hit"
 rm "$tmp/repo/leak2.txt"
 
+# --- secret-scan: precision — placeholders and URL slugs never trip ------------
+printf 'BOT=xoxb-your-bot-token\nURL=https://x.test/news/tradingview:c12b2e0666314:abcdefghijklmnopqrstuvwxyz0123456789abcd/\n' > "$tmp/repo/fp.txt"
+(cd "$tmp/repo" && ./.githooks/secret-scan fp.txt > /dev/null 2>&1) || fail "scan flagged placeholder or URL-slug false positives"
+rm "$tmp/repo/fp.txt"
+printf 'a=%s\nb=%s\n' "123456789:$(printf 'AAbbCCddEEffGGhhIIjjKKllMMnnOOppQQrr')" \
+  "xoxb-$(printf '123456789012-123456789012-abcdefghijklmnopqrstuvwx')" > "$tmp/repo/leak3.txt"
+(cd "$tmp/repo" && ./.githooks/secret-scan leak3.txt > /dev/null 2>&1) && fail "scan missed real-shaped slack/telegram tokens"
+rm "$tmp/repo/leak3.txt"
+
 # --- pre-commit gate cache -----------------------------------------------------
 # A scratch repo whose gate logs each run: two commits of the same tree must run
 # the gate once; changing the tree must run it again; a worktree that diverges
