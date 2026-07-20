@@ -5,7 +5,7 @@
 check: lint test
 
 lint:
-	shellcheck init.sh doctor.sh tests/smoke.sh \
+	shellcheck init.sh doctor.sh fleet.sh tests/smoke.sh \
 		templates/githooks/commit-msg templates/githooks/pre-commit \
 		templates/githooks/pre-commit-scoped templates/githooks/secret-scan \
 		.githooks/commit-msg .githooks/pre-commit .githooks/secret-scan

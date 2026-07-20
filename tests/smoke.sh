@@ -136,4 +136,27 @@ if [ -n "$first" ] && ! git cat-file blob "$first:templates/AGENTS.md" 2>/dev/nu
   echo "$out" | grep -q 'AGENTS.md is a stale template copy' || fail "doctor missed the stale AGENTS.md"
 fi
 
-echo "PASS  smoke: stamp, hooks, scanner, doctor, gate-cache"
+# --- fleet: sweep is read-only, stamp fixes stale and refuses diverged ---------
+git init -q "$tmp/f1"
+git init -q "$tmp/f2"
+./init.sh "$tmp/f1" > /dev/null || fail "init.sh errored on f1"
+./init.sh "$tmp/f2" > /dev/null || fail "init.sh errored on f2"
+printf '%s\n%s\n' "$tmp/f1" "$tmp/f2" > "$tmp/fleet.txt"
+out=$(FLEET_FILE="$tmp/fleet.txt" ./fleet.sh) || fail "fleet sweep errored on healthy repos"
+{ echo "$out" | grep -q 'f1' && echo "$out" | grep -q 'f2'; } || fail "fleet sweep missed a repo"
+echo '# junk' >> "$tmp/f1/.githooks/secret-scan"
+old=$(git rev-list HEAD -- templates/githooks/pre-commit | tail -1)
+if [ -n "$old" ] && ! git cat-file blob "$old:templates/githooks/pre-commit" 2>/dev/null | cmp -s - templates/githooks/pre-commit; then
+  git cat-file blob "$old:templates/githooks/pre-commit" > "$tmp/f2/.githooks/pre-commit"
+  out=$(FLEET_FILE="$tmp/fleet.txt" ./fleet.sh) || fail "fleet sweep errored on a drifted fleet"
+  echo "$out" | grep 'f2' | grep -q 'stale: pre-commit' || fail "fleet sweep missed a stale pre-commit"
+  FLEET_FILE="$tmp/fleet.txt" ./fleet.sh stamp > /dev/null || fail "fleet stamp errored"
+  cmp -s templates/githooks/pre-commit "$tmp/f2/.githooks/pre-commit" || fail "fleet stamp did not restamp the stale pre-commit"
+  [ -x "$tmp/f2/.githooks/pre-commit" ] || fail "fleet stamp lost the executable bit"
+fi
+cmp -s templates/githooks/secret-scan "$tmp/f1/.githooks/secret-scan" && fail "fleet stamp overwrote a diverged file"
+printf '%s\n%s\n' "$tmp/nonexistent" "$tmp/f2" > "$tmp/fleet.txt"
+out=$(FLEET_FILE="$tmp/fleet.txt" ./fleet.sh) && fail "fleet sweep exited zero with a broken repo path"
+echo "$out" | grep -q 'f2' || fail "fleet sweep stopped at the broken repo"
+
+echo "PASS  smoke: stamp, hooks, scanner, doctor, gate-cache, fleet"

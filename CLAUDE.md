@@ -7,6 +7,8 @@ Route by request:
   `./init.sh [-t types] [-s scopes] [-l python|node|none] [-c] <repo>` is the mechanical stamp (install-if-missing only).
 - **Learn from / ingest a repo** → the `harvest` skill (`/harvest <repo>`).
 - **Spin up a new app** → the `spinup` skill (`/spinup <blueprint> <path>`), executing `blueprints/<name>/BLUEPRINT.md` verbatim.
+- **Audit or sync the fleet** → `./fleet.sh` (read-only doctor sweep, one line per repo); `./fleet.sh stamp` re-stamps stale template copies, never diverged ones, never commits.
+  The repo list is the gitignored `fleet.txt` (machine-local by the independence invariant), else sibling-directory discovery.
 
 `DECISIONS.md` registers tooling verdicts with migration recipes; the doctor warns on superseded tooling.
 `PATTERNS.md` holds opt-in, shape-specific patterns.
