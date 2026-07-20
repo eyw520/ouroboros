@@ -33,6 +33,8 @@ Before conformance, verify the required toolchain is present and at the pinned v
 
 A tool an agent consumes should classify its failures instead of leaking tracebacks: `ok` (payload is the result), `transient` (upstream blip — wait `retry_after` seconds and retry), `permanent` (bad input or collision — fix the input, do not retry).
 The classification lives at the network edge in one place, and every caller acts systematically instead of parsing error text.
+When errors cross a text-only boundary, the classified error renders its status, retry delay, and detail as trailing `key=value` pairs in its own message, so even a client that only sees error strings keeps the machine-readable verdict.
+Base the classified error type on the language's generic runtime error so existing catch sites keep working — adoption should not require touching every caller.
 
 ## Scoped gates for slow monorepos
 
