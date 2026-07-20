@@ -36,7 +36,11 @@ else
 fi
 
 if [ -f "$target/.githooks/pre-commit" ]; then
-  pass ".githooks/pre-commit exists (gate-green-before-commit is enforced)"
+  if [ -x "$target/.githooks/pre-commit" ]; then
+    pass ".githooks/pre-commit exists (gate-green-before-commit is enforced)"
+  else
+    fail ".githooks/pre-commit is not executable — git silently skips it (chmod +x)"
+  fi
 else
   warn "no .githooks/pre-commit — gate-green-before-commit is prose only (init.sh installs one)"
 fi

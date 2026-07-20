@@ -61,6 +61,9 @@ before=$(git -C "$tmp/repo" status --porcelain)
 ./doctor.sh "$tmp/repo" > /dev/null || fail "doctor failed on a freshly stamped repo"
 after=$(git -C "$tmp/repo" status --porcelain)
 [ "$before" = "$after" ] || fail "doctor mutated the target"
+chmod -x "$tmp/repo/.githooks/pre-commit"
+./doctor.sh "$tmp/repo" > /dev/null 2>&1 && fail "doctor passed a non-executable pre-commit"
+chmod +x "$tmp/repo/.githooks/pre-commit"
 
 # --- secret-scan: staged and tracked ------------------------------------------
 printf 'key=AKIAABCDEFGHIJKLMNOP\n' > "$tmp/repo/leak.txt"
