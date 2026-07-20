@@ -81,3 +81,10 @@ Pair curated helpers for the common workflows with a generic passthrough for eve
 
 When a provider requires different credentials for different methods (search wants the user identity, write families want the bot identity), the who-needs-what table is config, not control flow: a rule list mapping method prefixes and exact names to a credential kind, resolved per call, falling back to the default credential when the preferred kind is not configured.
 Callers can still pin a kind explicitly; an unknown kind fails fast listing the allowed set, so the taxonomy of identities stays discoverable from the error itself.
+
+## Responses sized for the model
+
+Oversized payloads never fail loudly — they silently crowd out the agent's context, or the vision pipeline drops the image and the agent sees "could not be processed".
+Three disciplines for a server that feeds a model: raw upstream payloads are opt-in, never the default, because they roughly double every read; aggregate reads (threads, histories, paginated collections) pass through a byte budget that truncates long string leaves with visible markers — never keys, never structure — so the agent knows data was cut and can re-fetch narrower; images are pre-shrunk to the vision pipeline's limits (long edge and base64 byte ceiling) before crossing the wire.
+Deliberate byte transfers such as file downloads bypass the budget — they are explicitly sized by their own cap already.
+Truncation is always reported, in-band or as a flag: a silent cap reads as "covered everything" when it didn't.
