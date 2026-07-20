@@ -71,3 +71,8 @@ Interactive and headless/scheduled runs stay in lockstep because neither duplica
 A tool that accepts arbitrary upstream method names hands the agent the whole provider API — which is the point — so the safety lives in the transport layer, not in curating the tool list.
 Four fences, enforced in one shared place: credentials enter only through the environment (any credential-named key in a payload is rejected, recursively); credential-shaped strings are redacted from every response, including echo-style methods, so the model never sees a token; outbound requests are HTTPS-only against an allowlisted host set, re-validated on every redirect hop, because a compliant first URL can 302 anywhere; downloads are byte-capped.
 Annotation honesty is part of the fence: a generic tool that can invoke write methods is never annotated read-only — paginated variants included, because a cursor loop over a write method is still a write, and clients skip confirmation for tools that claim read-only.
+
+## The self-describing tool surface
+
+An agent-facing API server teaches the agent how to use it: a capabilities resource enumerating the surface, a method-docs tool mapping any upstream method name to its official documentation URL and the generic call shape to use, and the provider's canonical doc URLs exposed as a resource.
+Pair curated helpers for the common workflows with a generic passthrough for everything else: the curated tools carry the ergonomics, and the passthrough plus method-docs means a new provider capability costs zero server code — the alternative is a tool-per-method treadmill that never ends.
