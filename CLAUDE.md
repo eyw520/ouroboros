@@ -20,6 +20,7 @@ Route by request:
 - Judgment lives in the skills, mechanics in the scripts.
 - CI runs `make check` and nothing else.
 - The standards stand independently: no template, pattern, decision, or blueprint references a source repository (provenance lives in commit history and memory); no project names, no machine-specific paths; every entry justifies itself on its own reasoning.
+- The mirror of that independence: stamped repos never learn this repo exists — nothing under `templates/` names ouroboros, its scripts or docs, or a version marker; staleness is judged by the doctor against template history here, never recorded in the target.
 - A field lesson lands in the skill it improves, in the same commit as the change that motivated it.
 
 ## Conventions

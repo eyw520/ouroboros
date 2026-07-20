@@ -2,7 +2,6 @@
 # Change-scoped, phased, parallel pre-commit — the variant for multi-toolchain
 # repos whose full gate is too slow to run on every commit. The default hook
 # (pre-commit) runs `make check`; swap this in when scoping pays for itself.
-# See PATTERNS.md: "Scoped gates for slow monorepos".
 #
 # Shape: detect which areas the staged paths touch, run only the relevant legs,
 # parallelize independent legs within a phase, and print per-leg timings so the

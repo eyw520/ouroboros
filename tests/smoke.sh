@@ -8,6 +8,13 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 fail() { echo "FAIL: $*" >&2; exit 1; }
 
+# --- the target-blindness invariant --------------------------------------------
+# Nothing stamped into a repo may reveal that this repo exists: no names, no
+# version markers, no references to its scripts or docs.
+if grep -rilE 'ouroboros|PATTERNS\.md|DECISIONS\.md|BLUEPRINT|init\.sh|doctor\.sh' templates/; then
+  fail "a template leaks this repo's existence (files above)"
+fi
+
 # --- stamp: scoped python repo ------------------------------------------------
 git init -q "$tmp/repo"
 ./init.sh -s "all|agent" -l python -c "$tmp/repo" > /dev/null || fail "init.sh (scoped) errored"
