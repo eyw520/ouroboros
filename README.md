@@ -4,6 +4,7 @@ Canonical engineering conventions, templates, and stack blueprints — agent-for
 Add this repo to a Claude Code session (`/add-dir`) and ask it to standardize, audit, harvest, or spin up; `CLAUDE.md` routes the agent from there.
 
 - `/adopt <repo>` — push the standard into a repo (`init.sh` stamps, `doctor.sh` audits).
+- `/seed` — same flow from *inside* any repo, fresh or existing, no `/add-dir` needed; `make skill` symlinks it user-level once per machine.
 - `/harvest <repo>` — ingest a repo's best practices into the standard.
 - `/spinup <blueprint> <path>` — create a new app from `blueprints/`, born conforming.
 

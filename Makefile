@@ -1,5 +1,5 @@
 # Dev workflow. `make dev` once after cloning; `make check` before every commit.
-.PHONY: check lint test hooks dev
+.PHONY: check lint test hooks skill dev
 
 # The gate: static analysis over every script, then the smoke suite.
 check: lint test
@@ -16,4 +16,9 @@ test:
 hooks:
 	git config core.hooksPath .githooks
 
-dev: hooks
+# Symlink the seed skill user-level so any repo on this machine can run /seed.
+skill:
+	mkdir -p "$(HOME)/.claude/skills"
+	ln -sfn "$(CURDIR)/.claude/skills/seed" "$(HOME)/.claude/skills/seed"
+
+dev: hooks skill

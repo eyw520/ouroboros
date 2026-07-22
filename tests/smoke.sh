@@ -159,6 +159,12 @@ printf '%s\n%s\n' "$tmp/nonexistent" "$tmp/f2" > "$tmp/fleet.txt"
 out=$(FLEET_FILE="$tmp/fleet.txt" ./fleet.sh) && fail "fleet sweep exited zero with a broken repo path"
 echo "$out" | grep -q 'f2' || fail "fleet sweep stopped at the broken repo"
 
+# --- make skill: the user-level seed symlink is wired, resolves, and reruns ----
+HOME="$tmp/home" make -s skill || fail "make skill errored"
+[ -L "$tmp/home/.claude/skills/seed" ] || fail "make skill did not create the symlink"
+[ -f "$tmp/home/.claude/skills/seed/SKILL.md" ] || fail "seed symlink does not resolve to SKILL.md"
+HOME="$tmp/home" make -s skill || fail "make skill rerun errored"
+
 # --- doctor: context budget warns on runaway always-loaded docs ----------------
 # A fresh stamp (small CLAUDE.md + @AGENTS.md) is within budget; padding
 # CLAUDE.md past the ceiling WARNs but never FAILs.
@@ -170,4 +176,4 @@ i=0; while [ "$i" -lt 200 ]; do printf 'Filler sentence number %s for the contex
 out=$(./doctor.sh "$tmp/cb") || fail "doctor FAILed on over-budget docs (budget should only WARN)"
 echo "$out" | grep -q 'always-loaded docs over context budget' || fail "doctor did not warn on over-budget docs"
 
-echo "PASS  smoke: stamp, hooks, scanner, doctor, gate-cache, fleet"
+echo "PASS  smoke: stamp, hooks, scanner, doctor, gate-cache, fleet, skill"

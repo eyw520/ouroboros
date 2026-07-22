@@ -5,6 +5,7 @@ Route by request:
 
 - **Standardize/audit a repo** → `./doctor.sh <repo>`, then the `adopt` skill (`/adopt <repo>`).
   `./init.sh [-t types] [-s scopes] [-l python|node|none] [-c] <repo>` is the mechanical stamp (install-if-missing only).
+- **Seed from inside a target repo** → the `seed` skill (`/seed`), symlinked user-level by `make skill`; it locates this checkout through the symlink and runs adopt against the cwd.
 - **Learn from / ingest a repo** → the `harvest` skill (`/harvest <repo>`).
 - **Spin up a new app** → the `spinup` skill (`/spinup <blueprint> <path>`), executing `blueprints/<name>/BLUEPRINT.md` verbatim.
 - **Audit or sync the fleet** → `./fleet.sh` (read-only doctor sweep, one line per repo); `./fleet.sh stamp` re-stamps stale template copies, never diverged ones, never commits.
