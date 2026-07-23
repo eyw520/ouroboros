@@ -5,7 +5,7 @@
 check: lint test
 
 lint:
-	shellcheck init.sh doctor.sh fleet.sh tests/smoke.sh \
+	shellcheck init.sh doctor.sh fleet.sh bootstrap.sh tests/smoke.sh \
 		templates/githooks/commit-msg templates/githooks/pre-commit \
 		templates/githooks/pre-commit-scoped templates/githooks/secret-scan \
 		.githooks/commit-msg .githooks/pre-commit .githooks/secret-scan
@@ -16,9 +16,12 @@ test:
 hooks:
 	git config core.hooksPath .githooks
 
-# Symlink the seed skill user-level so any repo on this machine can run /seed.
+# Wire the whole kit user-level so any repo can run /seed (and adopt/harvest/
+# spinup), each self-locating this checkout through its own symlink.
 skill:
 	mkdir -p "$(HOME)/.claude/skills"
-	ln -sfn "$(CURDIR)/.claude/skills/seed" "$(HOME)/.claude/skills/seed"
+	for s in seed adopt harvest spinup; do \
+		ln -sfn "$(CURDIR)/.claude/skills/$$s" "$(HOME)/.claude/skills/$$s"; \
+	done
 
 dev: hooks skill

@@ -8,6 +8,9 @@ You are driving a target repo to full adoption of the standards in this repo.
 The scripts do the mechanical parts; the judgment calls below are yours.
 Work phase by phase; do not skip the classification gate.
 
+**Locate `<ouroboros>` below** (the standards checkout): the repo added to this session, or — when run ambient via the user-level skill symlink — `readlink ~/.claude/skills/adopt`, root three directories up.
+Neither resolves → run the checkout's `bootstrap.sh` to (re)wire the kit, or ask for the path; never guess.
+
 ## Phase 0 — Classify: should this repo be standardized at all?
 
 Read the target's CLAUDE.md/README **before touching anything**. Decline (and

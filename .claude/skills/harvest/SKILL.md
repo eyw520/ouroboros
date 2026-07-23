@@ -8,6 +8,9 @@ You are mining a source repo for practices worth folding into the standard.
 This is the inverse of `adopt`: the doctor reports where a repo falls SHORT of the standard; harvest looks for where it EXCEEDS it.
 Work phase by phase; a change to the standard reaches every repo, so the bar is higher than for an adoption.
 
+**Locate `<ouroboros>` below** (the standards checkout): the repo added to this session, or — when run ambient via the user-level skill symlink — `readlink ~/.claude/skills/harvest`, root three directories up.
+Neither resolves → run the checkout's `bootstrap.sh` to (re)wire the kit, or ask for the path; never guess. Harvest edits this checkout, so you must have it, not just reach its scripts.
+
 ## Phase 0 — What counts
 
 Harvestable: enforcement inventions (hooks, guards, scanners, CI mechanics), gate/caching mechanics, checkable invariants, convention wordings, doc structures, shape-specific patterns.

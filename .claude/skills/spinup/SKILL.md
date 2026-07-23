@@ -8,6 +8,9 @@ You are creating a new repo from `blueprints/<name>/BLUEPRINT.md`.
 The blueprint is the instructions — follow it verbatim; do not improvise structure.
 If no blueprint fits the request, say so and offer `/harvest` on a reference project to create one.
 
+**Locate the standards checkout** (blueprints, `init.sh`, `doctor.sh` live in it): the repo added to this session, or — when run ambient via the user-level skill symlink — `readlink ~/.claude/skills/spinup`, root three directories up.
+Neither resolves → run the checkout's `bootstrap.sh` to (re)wire the kit, or ask for the path; never guess.
+
 ## Phase 0 — Inputs
 
 Confirm the app name, target path, and any decision the blueprint marks as a real choice (e.g. deploy target).

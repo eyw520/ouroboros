@@ -8,8 +8,8 @@ This skill only locates the two repos and hands off — the judgment lives in th
 
 ## Locate
 
-1. Standards checkout: `readlink ~/.claude/skills/seed` resolves this skill's symlink; the checkout root is three directories up (the link points at `<root>/.claude/skills/seed`).
-   If that is not a symlink (a stray copy), ask the user where the checkout lives — never guess.
+1. Standards checkout: the ouroboros repo added to this session if present, else `readlink ~/.claude/skills/seed` — the checkout root is three directories up (the link points at `<root>/.claude/skills/seed`).
+   Neither resolves (fresh machine, dangling link) → run the checkout's `bootstrap.sh` to (re)wire the kit, or ask the user where the checkout lives. Never guess.
 2. Target: `git rev-parse --show-toplevel` from the cwd.
    Not a git repo yet → confirm with the user, then `git init`; it proceeds as greenfield.
    Target resolves to the standards checkout itself → stop and say so; it is worked on directly, not seeded.

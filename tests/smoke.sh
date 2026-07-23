@@ -159,11 +159,43 @@ printf '%s\n%s\n' "$tmp/nonexistent" "$tmp/f2" > "$tmp/fleet.txt"
 out=$(FLEET_FILE="$tmp/fleet.txt" ./fleet.sh) && fail "fleet sweep exited zero with a broken repo path"
 echo "$out" | grep -q 'f2' || fail "fleet sweep stopped at the broken repo"
 
-# --- make skill: the user-level seed symlink is wired, resolves, and reruns ----
+# --- make skill: the whole kit is wired user-level, resolves, and reruns -------
 HOME="$tmp/home" make -s skill || fail "make skill errored"
-[ -L "$tmp/home/.claude/skills/seed" ] || fail "make skill did not create the symlink"
-[ -f "$tmp/home/.claude/skills/seed/SKILL.md" ] || fail "seed symlink does not resolve to SKILL.md"
+for s in seed adopt harvest spinup; do
+  [ -L "$tmp/home/.claude/skills/$s" ] || fail "make skill did not link $s"
+  [ -f "$tmp/home/.claude/skills/$s/SKILL.md" ] || fail "$s symlink does not resolve to SKILL.md"
+done
 HOME="$tmp/home" make -s skill || fail "make skill rerun errored"
+
+# --- ambient coherence: every kit skill can self-locate the checkout ----------
+# Ambient (no /add-dir) hinges on each skill resolving the checkout through its
+# own user-level symlink; a skill missing that line silently breaks ambient use.
+for s in seed adopt harvest spinup; do
+  grep -q "readlink ~/.claude/skills/$s" ".claude/skills/$s/SKILL.md" \
+    || fail "$s SKILL.md lacks the self-locate line (ambient use would break)"
+done
+
+# --- bootstrap.sh: in-checkout wires; clone path clones-then-wires; needs a url -
+HOME="$tmp/bh" ./bootstrap.sh > /dev/null 2>&1 || fail "bootstrap (in-checkout) errored"
+[ -f "$tmp/bh/.claude/skills/seed/SKILL.md" ] || fail "bootstrap (in-checkout) did not wire the kit"
+# A local snapshot of the working tree stands in for the remote; bootstrap run
+# from outside any checkout must clone it and wire the clone.
+mkdir -p "$tmp/src/.claude"
+cp Makefile bootstrap.sh "$tmp/src/"
+cp -R templates "$tmp/src/"
+cp -R .claude/skills "$tmp/src/.claude/"
+git init -q "$tmp/src"
+git -C "$tmp/src" add -A
+git -C "$tmp/src" -c user.email=t@t.test -c user.name=t commit -q -m "snapshot"
+cp bootstrap.sh "$tmp/bootstrap.sh"   # run from $tmp so `self` is not a checkout
+HOME="$tmp/ch" sh "$tmp/bootstrap.sh" "$tmp/dest" "$tmp/src" > /dev/null 2>&1 \
+  || fail "bootstrap (clone) errored"
+[ -d "$tmp/dest/.git" ] || fail "bootstrap (clone) did not clone the checkout"
+[ -f "$tmp/ch/.claude/skills/spinup/SKILL.md" ] || fail "bootstrap (clone) did not wire the kit"
+HOME="$tmp/ch" sh "$tmp/bootstrap.sh" "$tmp/dest" "$tmp/src" > /dev/null 2>&1 \
+  || fail "bootstrap (clone) rerun errored on an existing checkout"
+HOME="$tmp/ch2" sh "$tmp/bootstrap.sh" "$tmp/dest2" > /dev/null 2>&1 \
+  && fail "bootstrap cloned with no remote given"
 
 # --- doctor: context budget warns on runaway always-loaded docs ----------------
 # A fresh stamp (small CLAUDE.md + @AGENTS.md) is within budget; padding
@@ -176,4 +208,4 @@ i=0; while [ "$i" -lt 200 ]; do printf 'Filler sentence number %s for the contex
 out=$(./doctor.sh "$tmp/cb") || fail "doctor FAILed on over-budget docs (budget should only WARN)"
 echo "$out" | grep -q 'always-loaded docs over context budget' || fail "doctor did not warn on over-budget docs"
 
-echo "PASS  smoke: stamp, hooks, scanner, doctor, gate-cache, fleet, skill"
+echo "PASS  smoke: stamp, hooks, scanner, doctor, gate-cache, fleet, skill, bootstrap"

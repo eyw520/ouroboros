@@ -1,10 +1,14 @@
 # Ouroboros
 
 Canonical engineering conventions, templates, and stack blueprints — agent-forward by design.
-Add this repo to a Claude Code session (`/add-dir`) and ask it to standardize, audit, harvest, or spin up; `CLAUDE.md` routes the agent from there.
+Wire the kit into a machine once with `make skill` (or the one-liner below) and the skills run ambient from any repo — each self-locates this checkout through its user-level symlink, so `/add-dir` is optional.
 
-- `/adopt <repo>` — push the standard into a repo (`init.sh` stamps, `doctor.sh` audits).
-- `/seed` — same flow from *inside* any repo, fresh or existing, no `/add-dir` needed; `make skill` symlinks it user-level once per machine.
+```sh
+sh bootstrap.sh "$HOME/.ouroboros" https://github.com/eyw520/ouroboros.git   # fresh machine: clone + wire
+```
+
+- `/seed` — stamp the standard into the *current* repo, fresh or existing; the from-inside entry point, no arguments.
+- `/adopt <repo>` — push the standard into another repo (`init.sh` stamps, `doctor.sh` audits).
 - `/harvest <repo>` — ingest a repo's best practices into the standard.
 - `/spinup <blueprint> <path>` — create a new app from `blueprints/`, born conforming.
 
