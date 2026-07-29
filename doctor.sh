@@ -26,6 +26,35 @@ fail() { echo "FAIL  $1"; fails=$((fails + 1)); }
 norm_copy() { # $1 = strip: drop per-repo config lines; anything else: pass through
   if [ "$1" = strip ]; then grep -v -e '^types="' -e '^scopes="'; else cat; fi
 }
+block_in() { # $1 appears as a contiguous block inside $2?
+  awk 'FNR==NR { t[++n]=$0; next } { tgt[++m]=$0 }
+    END { if (n == 0 || n > m) exit 1
+      for (i = 1; i+n-1 <= m; i++) { ok=1
+        for (j = 1; j <= n; j++) if (tgt[i+j-1] != t[j]) { ok=0; break }
+        if (ok) exit 0 }
+      exit 1 }' "$1" "$2"
+}
+# AGENTS.md carries repo-specific sections below the shared block, so its drift
+# is judged by containment rather than whole-file identity.
+block_status() { # <target-file> <template-rel-path>
+  if block_in "$std_root/$2" "$1"; then
+    echo current
+    return
+  fi
+  git -C "$std_root" rev-list HEAD -- "$2" 2>/dev/null | {
+    s=diverged
+    while IFS= read -r c; do
+      bs_tmp=$(mktemp)
+      if git -C "$std_root" cat-file blob "$c:$2" 2>/dev/null > "$bs_tmp" && block_in "$bs_tmp" "$1"; then
+        s=stale
+        rm -f "$bs_tmp"
+        break
+      fi
+      rm -f "$bs_tmp"
+    done
+    echo "$s"
+  }
+}
 template_status() { # <target-file> <template-rel-path> [strip]
   ts_tmp=$(mktemp)
   norm_copy "${3:-plain}" < "$1" > "$ts_tmp"
@@ -122,9 +151,9 @@ fi
 
 # --- Docs --------------------------------------------------------------------
 if [ -f "$target/AGENTS.md" ]; then
-  case "$(template_status "$target/AGENTS.md" "templates/AGENTS.md")" in
-    current) pass "AGENTS.md present and identical to the template" ;;
-    stale)   warn "AGENTS.md is a stale template copy — re-sync from templates/AGENTS.md" ;;
+  case "$(block_status "$target/AGENTS.md" "templates/AGENTS.md")" in
+    current) pass "AGENTS.md carries the current shared conventions (repo sections aside)" ;;
+    stale)   warn "AGENTS.md is a stale template copy (shared block) — re-sync from templates/AGENTS.md" ;;
     *)       warn "AGENTS.md diverged from every shipped template version (diff \"$tpl/AGENTS.md\" \"$target/AGENTS.md\")" ;;
   esac
 else

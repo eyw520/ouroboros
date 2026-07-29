@@ -138,6 +138,13 @@ if [ -n "$first" ] && ! git cat-file blob "$first:templates/AGENTS.md" 2>/dev/nu
   echo "$out" | grep -q 'AGENTS.md is a stale template copy' || fail "doctor missed the stale AGENTS.md"
 fi
 
+# --- doctor: AGENTS.md drift is judged by containment of the shared block ------
+# Repo-specific sections appended below the shared conventions are not drift.
+cp templates/AGENTS.md "$tmp/repo/AGENTS.md"
+printf '\n# Repo specifics\n\nAn invariant of this repo.\n' >> "$tmp/repo/AGENTS.md"
+out=$(./doctor.sh "$tmp/repo") || fail "doctor errored on AGENTS.md with repo sections"
+echo "$out" | grep -qE 'AGENTS.md (is a stale|diverged)' && fail "doctor flagged appended repo sections as drift"
+
 # --- fleet: sweep is read-only, stamp fixes stale and refuses diverged ---------
 git init -q "$tmp/f1"
 git init -q "$tmp/f2"
@@ -157,6 +164,14 @@ if [ -n "$old" ] && ! git cat-file blob "$old:templates/githooks/pre-commit" 2>/
   [ -x "$tmp/f2/.githooks/pre-commit" ] || fail "fleet stamp lost the executable bit"
 fi
 cmp -s templates/githooks/secret-scan "$tmp/f1/.githooks/secret-scan" && fail "fleet stamp overwrote a diverged file"
+old_a=$(git rev-list HEAD -- templates/AGENTS.md | tail -1)
+if [ -n "$old_a" ] && ! git cat-file blob "$old_a:templates/AGENTS.md" 2>/dev/null | cmp -s - templates/AGENTS.md; then
+  { git cat-file blob "$old_a:templates/AGENTS.md"; printf '\n# Repo specifics\n\nKeep me.\n'; } > "$tmp/f2/AGENTS.md"
+  FLEET_FILE="$tmp/fleet.txt" ./fleet.sh stamp > /dev/null || fail "fleet stamp errored on a stale AGENTS.md block"
+  grep -q '^Keep me.$' "$tmp/f2/AGENTS.md" || fail "fleet stamp lost the repo sections while splicing AGENTS.md"
+  head -n "$(wc -l < templates/AGENTS.md)" "$tmp/f2/AGENTS.md" | cmp -s - templates/AGENTS.md || fail "fleet stamp did not splice the current shared block"
+  ./doctor.sh "$tmp/f2" | grep -qE 'AGENTS.md (is a stale|diverged)' && fail "spliced AGENTS.md still reads as drift"
+fi
 printf '%s\n%s\n' "$tmp/nonexistent" "$tmp/f2" > "$tmp/fleet.txt"
 out=$(FLEET_FILE="$tmp/fleet.txt" ./fleet.sh) && fail "fleet sweep exited zero with a broken repo path"
 echo "$out" | grep -q 'f2' || fail "fleet sweep stopped at the broken repo"

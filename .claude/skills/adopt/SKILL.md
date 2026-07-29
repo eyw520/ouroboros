@@ -60,12 +60,13 @@ tell the user why) when the repo is:
 
 ## Phase 4 — Integrate docs and Makefile
 
-- Add `@AGENTS.md` on its own line near the top of the target's CLAUDE.md.
-- **Dedupe**: delete CLAUDE.md lines now covered by AGENTS.md (generic first
-  principles, generic commit discipline). **Keep** every repo-specific nuance
-  (extra types/scopes, "a schema snapshot rides the commit", domain
-  principles). A one-line pointer ("The rest of the commit discipline lives in
-  `AGENTS.md`.") replaces the removed block.
+- AGENTS.md is the single conventions file: the stamped shared block first,
+  the repo's own map, invariants, and gotchas below it. Migrate every
+  repo-specific nuance from CLAUDE.md into those sections (extra types/scopes,
+  "a schema snapshot rides the commit", domain principles); **drop** lines the
+  shared block already covers.
+- CLAUDE.md becomes the thin pointer (templates/CLAUDE.md): the `@AGENTS.md`
+  import plus "Refer to AGENTS.md for all project conventions." — nothing else.
 - Makefile verb contract — `check` (the full gate), `fmt`, `hooks`, `dev` —
   mapped onto the repo's *real* toolchain. Alias, don't duplicate (e.g.
   `fmt: lint` when lint already fixes; `dev: setup` when setup exists). If

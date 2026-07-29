@@ -1,6 +1,6 @@
 # Engineering Conventions
 
-Shared conventions; each repo's CLAUDE.md adds its map, invariants, and gotchas.
+Shared conventions first; the repo's own map, invariants, and gotchas follow below (CLAUDE.md stays a thin pointer here).
 When this file and an enforcing hook disagree, the hook wins — fix whichever is wrong in the same commit.
 
 ## First principles

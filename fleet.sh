@@ -51,6 +51,33 @@ fi
 
 [ -s "$list" ] || { echo "fleet.sh: no fleet repos found ($fleet_file, or sibling discovery)"; exit 2; }
 
+# AGENTS.md holds repo sections below the shared block, so a stale one is fixed
+# by splicing the current template over the embedded old block, never by copy.
+splice_agents() { # $1 = repo path
+  git -C "$std_root" rev-list HEAD -- templates/AGENTS.md 2>/dev/null | {
+    while IFS= read -r c; do
+      sa_tmp=$(mktemp)
+      git -C "$std_root" cat-file blob "$c:templates/AGENTS.md" 2>/dev/null > "$sa_tmp" || { rm -f "$sa_tmp"; continue; }
+      at=$(awk 'FNR==NR { t[++n]=$0; next } { tgt[++m]=$0 }
+        END { for (i = 1; i+n-1 <= m; i++) { ok=1
+          for (j = 1; j <= n; j++) if (tgt[i+j-1] != t[j]) { ok=0; break }
+          if (ok) { print i; exit } } }' "$sa_tmp" "$1/AGENTS.md")
+      if [ -n "$at" ]; then
+        blen=$(wc -l < "$sa_tmp")
+        {
+          [ "$at" -gt 1 ] && sed -n "1,$((at - 1))p" "$1/AGENTS.md"
+          cat "$tpl/AGENTS.md"
+          sed -n "$((at + blen)),\$p" "$1/AGENTS.md"
+        } > "$sa_tmp"
+        mv "$sa_tmp" "$1/AGENTS.md"
+        exit 0
+      fi
+      rm -f "$sa_tmp"
+    done
+    exit 1
+  }
+}
+
 # Map the doctor's drift warnings back to file names ("hook" is commit-msg).
 drift() { # $1 = doctor output, $2 = stale|diverged
   case "$2" in
@@ -86,7 +113,7 @@ while IFS= read -r repo; do
           cp "$tpl/githooks/$f" "$repo/.githooks/$f"
           chmod +x "$repo/.githooks/$f" ;;
         AGENTS.md)
-          cp "$tpl/AGENTS.md" "$repo/AGENTS.md" ;;
+          splice_agents "$repo" || f="AGENTS.md(SPLICE-FAILED-reconcile-by-hand)" ;;
       esac
       stamped="$stamped $f"
     done < "$scratch"
