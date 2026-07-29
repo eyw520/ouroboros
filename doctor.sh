@@ -250,6 +250,19 @@ else
   fail "content secret scan found credential-shaped VALUES — rerun for redacted locations: (cd $target && $scanner --tracked)"
 fi
 
+# --- Comment discipline --------------------------------------------------------
+# Advisory (WARN): the one-line-comment principle, mechanized. Heuristic by
+# nature, so it nudges rather than gates.
+cscan="$target/.githooks/comment-scan"
+[ -x "$cscan" ] || cscan="$tpl/githooks/comment-scan"
+if cs_out=$( (cd "$target" && "$cscan" --tracked) 2>/dev/null ); then
+  pass "no multi-line comment blocks in tracked sources"
+else
+  n=$(printf '%s\n' "$cs_out" | grep -c 'comment block$')
+  warn "$n multi-line comment block(s) in tracked sources — code self-describes; comments are one line (first 5):"
+  printf '%s\n' "$cs_out" | grep 'comment block$' | head -5 | sed 's/^/      /'
+fi
+
 # --- Config suggestion from history ------------------------------------------
 if [ "$(git -C "$target" rev-list --count HEAD 2>/dev/null || echo 0)" -gt 0 ]; then
   echo "== type(scope) histogram, last 100 subjects (derive -t/-s for init.sh from this) =="

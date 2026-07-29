@@ -1,0 +1,71 @@
+#!/bin/sh
+# Flag multi-line comment blocks: code self-describes, so a comment that earns
+# its place is one line — longer blocks are narration that belongs in naming,
+# structure, or the commit.
+# Usage: comment-scan [--tracked] [file ...]    (no args = --tracked)
+# Advisory heuristic: a file's leading header (shebang, license, usage) is
+# exempt, hook/vendor/generated paths are skipped, and only runs longer than
+# COMMENT_RUN_MAX (default 2) consecutive comment lines are flagged.
+# Exits 1 when anything is flagged, 0 when clean.
+set -u
+
+max=${COMMENT_RUN_MAX:-2}
+
+scan_one() {
+  f=$1
+  style=
+  case "$f" in
+    Makefile|*/Makefile|makefile|*/makefile|*.mk|*.py|*.sh|*.bash|*.zsh|*.rb|*.pl|*.r|*.R|*.yml|*.yaml|*.toml|*.tf|Dockerfile|*/Dockerfile) style='hash' ;;
+    *.c|*.h|*.cc|*.cpp|*.hpp|*.m|*.mm|*.java|*.cs|*.kt|*.kts|*.swift|*.scala|*.dart|*.php|*.js|*.jsx|*.ts|*.tsx|*.mjs|*.cjs|*.go|*.rs|*.proto) style=cslash ;;
+    *.css|*.scss|*.less) style=cblock ;;
+    *.sql|*.lua|*.hs) style=dash ;;
+    *)
+      case "$(head -c 64 "$f" 2>/dev/null | head -1)" in
+        '#!'*sh*|'#!'*python*|'#!'*perl*|'#!'*ruby*) style='hash' ;;
+        *) return 0 ;;
+      esac ;;
+  esac
+  awk -v style="$style" -v max="$max" -v fname="$f" '
+    function flush(end) {
+      if (run > max && !run_lead) {
+        end = start + run - 1
+        printf "%s:%d-%d  %d-line comment block\n", fname, start, end, run
+      }
+      run = 0
+    }
+    BEGIN { lead = 1; run = 0; inblk = 0 }
+    {
+      s = $0; sub(/^[ \t]*/, "", s)
+      if (inblk) { run++; if (index(s, "*/")) inblk = 0; next }
+      iscmt = 0
+      if (style == "hash" && s ~ /^#/) iscmt = 1
+      if (style == "dash" && s ~ /^--/) iscmt = 1
+      if (style == "cslash" && s ~ /^\/\//) iscmt = 1
+      if ((style == "cslash" || style == "cblock") && s ~ /^\/\*/) {
+        iscmt = 1
+        if (!index(s, "*/")) inblk = 1
+      }
+      if (iscmt) { if (run == 0) { start = NR; run_lead = lead }; run++; next }
+      flush()
+      if (s != "") lead = 0
+    }
+    END { flush() }
+  ' "$f"
+}
+
+hits=$(mktemp)
+trap 'rm -f "$hits"' EXIT
+
+if [ "$#" -eq 0 ] || [ "${1:-}" = "--tracked" ]; then
+  git ls-files | grep -Ev '^\.githooks/|(^|/)(vendor|third_party|node_modules|dist|build|\.venv|venv)/' \
+    | while IFS= read -r f; do [ -f "$f" ] && scan_one "$f"; done > "$hits"
+else
+  for f in "$@"; do scan_one "$f"; done > "$hits"
+fi
+
+if [ -s "$hits" ]; then
+  cat "$hits"
+  echo "comment-scan: $(wc -l < "$hits" | tr -d ' ') block(s) — code self-describes; keep comments to one line"
+  exit 1
+fi
+exit 0

@@ -19,12 +19,14 @@ fi
 git init -q "$tmp/repo"
 ./init.sh -s "all|agent" -l python -c "$tmp/repo" > /dev/null || fail "init.sh (scoped) errored"
 for f in .githooks/commit-msg .githooks/pre-commit .githooks/secret-scan \
-         AGENTS.md CLAUDE.md .editorconfig Makefile ruff.toml mypy.ini \
-         pyrightconfig.json .python-version .github/workflows/gate.yml; do
+         .githooks/comment-scan AGENTS.md CLAUDE.md .editorconfig Makefile \
+         ruff.toml mypy.ini pyrightconfig.json .python-version \
+         .github/workflows/gate.yml; do
   [ -f "$tmp/repo/$f" ] || fail "stamp missing $f"
 done
 [ -x "$tmp/repo/.githooks/pre-commit" ] || fail "pre-commit not executable"
 [ -x "$tmp/repo/.githooks/secret-scan" ] || fail "secret-scan not executable"
+[ -x "$tmp/repo/.githooks/comment-scan" ] || fail "comment-scan not executable"
 [ "$(git -C "$tmp/repo" config core.hooksPath)" = ".githooks" ] || fail "hooksPath not wired"
 
 # --- commit-msg: scoped form --------------------------------------------------
@@ -197,6 +199,49 @@ HOME="$tmp/ch" sh "$tmp/bootstrap.sh" "$tmp/dest" "$tmp/src" > /dev/null 2>&1 \
 HOME="$tmp/ch2" sh "$tmp/bootstrap.sh" "$tmp/dest2" > /dev/null 2>&1 \
   && fail "bootstrap cloned with no remote given"
 
+# --- comment-scan: flags interior runs, exempts headers, doctor only WARNs -----
+git init -q "$tmp/cs"
+./init.sh "$tmp/cs" > /dev/null || fail "init.sh errored on cs"
+cat > "$tmp/cs/mc.py" <<'EOF'
+#!/usr/bin/env python3
+# leading header line two
+# leading header line three
+
+x = 1
+# a one-liner is fine
+y = 2
+# a two-line comment
+# is tolerated by default
+z = 3
+# but three consecutive
+# comment lines are
+# narration, flagged
+w = 4
+EOF
+cat > "$tmp/cs/mc.js" <<'EOF'
+// leading header
+let a = 1
+/* a block comment
+   spanning three
+   lines */
+let b = 2
+EOF
+out=$( (cd "$tmp/cs" && ./.githooks/comment-scan mc.py mc.js) ) && fail "comment-scan passed files with comment blocks"
+echo "$out" | grep -q 'mc.py:11-13' || fail "comment-scan missed the 3-line hash run (got: $out)"
+echo "$out" | grep -q 'mc.js:3-5' || fail "comment-scan missed the 3-line /* */ block (got: $out)"
+echo "$out" | grep -q 'mc.py:1-3' && fail "comment-scan flagged the exempt leading header"
+echo "$out" | grep -q 'mc.py:8' && fail "comment-scan flagged a 2-line run at the default threshold"
+[ "$(echo "$out" | grep -c 'comment block$')" -eq 2 ] || fail "comment-scan flagged more than the two fixtures: $out"
+out=$( (cd "$tmp/cs" && COMMENT_RUN_MAX=1 ./.githooks/comment-scan mc.py) ) && fail "strict comment-scan passed a 2-line run"
+echo "$out" | grep -q 'mc.py:8-9' || fail "COMMENT_RUN_MAX=1 did not flag the 2-line run"
+git -C "$tmp/cs" add .
+out=$( (cd "$tmp/cs" && ./.githooks/comment-scan --tracked) ) && fail "tracked comment-scan passed a repo with comment blocks"
+echo "$out" | grep -q '^\.githooks/' && fail "comment-scan did not exempt .githooks/"
+out=$(./doctor.sh "$tmp/cs") || fail "doctor FAILed on comment blocks (advisory: must WARN, not FAIL)"
+echo "$out" | grep -q 'multi-line comment block' || fail "doctor did not surface the comment-scan warning"
+git -C "$tmp/cs" rm -q --cached mc.py mc.js
+(cd "$tmp/cs" && ./.githooks/comment-scan --tracked > /dev/null) || fail "comment-scan failed a clean tracked set"
+
 # --- doctor: context budget warns on runaway always-loaded docs ----------------
 # A fresh stamp (small CLAUDE.md + @AGENTS.md) is within budget; padding
 # CLAUDE.md past the ceiling WARNs but never FAILs.
@@ -208,4 +253,4 @@ i=0; while [ "$i" -lt 200 ]; do printf 'Filler sentence number %s for the contex
 out=$(./doctor.sh "$tmp/cb") || fail "doctor FAILed on over-budget docs (budget should only WARN)"
 echo "$out" | grep -q 'always-loaded docs over context budget' || fail "doctor did not warn on over-budget docs"
 
-echo "PASS  smoke: stamp, hooks, scanner, doctor, gate-cache, fleet, skill, bootstrap"
+echo "PASS  smoke: stamp, hooks, scanners, doctor, gate-cache, fleet, skill, bootstrap"

@@ -8,6 +8,7 @@ lint:
 	shellcheck init.sh doctor.sh fleet.sh bootstrap.sh tests/smoke.sh \
 		templates/githooks/commit-msg templates/githooks/pre-commit \
 		templates/githooks/pre-commit-scoped templates/githooks/secret-scan \
+		templates/githooks/comment-scan \
 		.githooks/commit-msg .githooks/pre-commit .githooks/secret-scan
 
 test:

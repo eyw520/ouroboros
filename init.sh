@@ -67,7 +67,8 @@ rm -f "$hook_tmp"
 
 install "$tpl/githooks/pre-commit" ".githooks/pre-commit"
 install "$tpl/githooks/secret-scan" ".githooks/secret-scan"
-chmod +x "$target/.githooks/pre-commit" "$target/.githooks/secret-scan"
+install "$tpl/githooks/comment-scan" ".githooks/comment-scan"
+chmod +x "$target/.githooks/pre-commit" "$target/.githooks/secret-scan" "$target/.githooks/comment-scan"
 
 install "$tpl/AGENTS.md" "AGENTS.md"
 install "$tpl/CLAUDE.md" "CLAUDE.md"
