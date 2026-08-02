@@ -214,6 +214,18 @@ HOME="$tmp/ch" sh "$tmp/bootstrap.sh" "$tmp/dest" "$tmp/src" > /dev/null 2>&1 \
 HOME="$tmp/ch2" sh "$tmp/bootstrap.sh" "$tmp/dest2" > /dev/null 2>&1 \
   && fail "bootstrap cloned with no remote given"
 
+# --- pre-commit: gate dormant without a Makefile, wakes when one lands ---------
+git init -q "$tmp/gm"
+./init.sh "$tmp/gm" > /dev/null || fail "init.sh errored on gm"
+printf 'hello\n' > "$tmp/gm/f.txt"
+git -C "$tmp/gm" add f.txt AGENTS.md CLAUDE.md
+git -C "$tmp/gm" -c user.email=t@t.test -c user.name=t commit -q -m 'feat: Commit without a toolchain.' \
+  || fail "dormant gate blocked a toolchain-less commit"
+printf 'check:\n\t@exit 1\n' > "$tmp/gm/Makefile"
+git -C "$tmp/gm" add Makefile
+git -C "$tmp/gm" -c user.email=t@t.test -c user.name=t commit -q -m 'feat: Add a failing gate.' > /dev/null 2>&1 \
+  && fail "gate stayed dormant after a Makefile landed"
+
 # --- comment-scan: flags interior runs, exempts headers, doctor only WARNs -----
 git init -q "$tmp/cs"
 ./init.sh "$tmp/cs" > /dev/null || fail "init.sh errored on cs"

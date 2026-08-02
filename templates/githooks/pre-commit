@@ -18,6 +18,13 @@ if [ -x "$hooks_dir/secret-scan" ]; then
   "$hooks_dir/secret-scan" || exit 1
 fi
 
+# Dormant without a Makefile: a toolchain-less repo must not block commits (or
+# teach --no-verify, which would also silently drop the secret scan above).
+if [ ! -f Makefile ] && [ ! -f makefile ]; then
+  echo "pre-commit: no Makefile — gate dormant; secret scan ran"
+  exit 0
+fi
+
 git_dir=$(git rev-parse --git-dir)
 cache="$git_dir/gate-pass"
 tree=$(git write-tree 2>/dev/null)
