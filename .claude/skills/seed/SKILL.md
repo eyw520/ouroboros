@@ -13,6 +13,7 @@ This skill only locates the two repos and hands off — the judgment lives in th
 2. Target: `git rev-parse --show-toplevel` from the cwd.
    Not a git repo yet → confirm with the user, then `git init`; it proceeds as greenfield.
    Target resolves to the standards checkout itself → stop and say so; it is worked on directly, not seeded.
+   A workspace owned by a live automation run (a lock file with a live pid or fresh heartbeat, e.g. `.infiniloop/run.lock`) is not greenfield — decline; stamped hooks would fight the run's own commits. Seed after the run completes.
 
 ## Hand off
 
