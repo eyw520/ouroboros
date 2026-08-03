@@ -178,16 +178,16 @@ echo "$out" | grep -q 'f2' || fail "fleet sweep stopped at the broken repo"
 
 # --- make skill: the whole kit is wired user-level, resolves, and reruns -------
 HOME="$tmp/home" make -s skill || fail "make skill errored"
-for s in seed adopt harvest spinup; do
+for s in seed adopt harvest spinup legible; do
   [ -L "$tmp/home/.claude/skills/$s" ] || fail "make skill did not link $s"
   [ -f "$tmp/home/.claude/skills/$s/SKILL.md" ] || fail "$s symlink does not resolve to SKILL.md"
 done
 HOME="$tmp/home" make -s skill || fail "make skill rerun errored"
 
-# --- ambient coherence: every kit skill can self-locate the checkout ----------
+# --- ambient coherence: skills that use the checkout can self-locate it -------
 # Ambient (no /add-dir) hinges on each skill resolving the checkout through its
-# own user-level symlink; a skill missing that line silently breaks ambient use.
-for s in seed adopt harvest spinup; do
+# own symlink; one that needs the checkout and lacks that line breaks silently.
+for s in seed adopt harvest spinup; do   # legible works only inside its target
   grep -q "readlink ~/.claude/skills/$s" ".claude/skills/$s/SKILL.md" \
     || fail "$s SKILL.md lacks the self-locate line (ambient use would break)"
 done

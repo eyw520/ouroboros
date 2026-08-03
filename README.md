@@ -11,6 +11,7 @@ sh bootstrap.sh "$HOME/.ouroboros" https://github.com/eyw520/ouroboros.git   # f
 - `/adopt <repo>` — push the standard into another repo (`init.sh` stamps, `doctor.sh` audits).
 - `/harvest <repo>` — ingest a repo's best practices into the standard.
 - `/spinup <blueprint> <path>` — create a new app from `blueprints/`, born conforming.
+- `/legible [repo]` — restructure a codebase so its layout and names teach its design; pure moves, gate-verified.
 
 Manual entry points: `./doctor.sh <repo>` (read-only audit) and `./init.sh [-t types] [-s scopes] [-l python|node] [-c] <repo>` (install-if-missing stamp).
 Reference: `PATTERNS.md` (opt-in, shape-specific), `DECISIONS.md` (tooling verdicts + migration recipes), `templates/` (the stamped files).

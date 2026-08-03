@@ -9,6 +9,7 @@ Route by request:
   `make skill` wires the whole kit (seed + adopt/harvest/spinup) user-level so it runs ambient without `/add-dir`; `bootstrap.sh` clones-then-wires on a fresh machine.
 - **Learn from / ingest a repo** → the `harvest` skill (`/harvest <repo>`).
 - **Spin up a new app** → the `spinup` skill (`/spinup <blueprint> <path>`), executing `blueprints/<name>/BLUEPRINT.md` verbatim.
+- **Make a repo navigable** → the `legible` skill (`/legible [repo]`); groups a sprawling tree into role packages and gives each one a map, as pure `git mv`s with the gate green per commit.
 - **Audit or sync the fleet** → `./fleet.sh` (read-only doctor sweep, one line per repo); `./fleet.sh stamp` re-stamps stale template copies, never diverged ones, never commits.
   The repo list is the gitignored `fleet.txt` (machine-local by the independence invariant), else sibling-directory discovery.
 

@@ -18,10 +18,10 @@ hooks:
 	git config core.hooksPath .githooks
 
 # Wire the whole kit user-level so any repo can run /seed (and adopt/harvest/
-# spinup), each self-locating this checkout through its own symlink.
+# spinup/legible), each self-locating this checkout when it needs its assets.
 skill:
 	mkdir -p "$(HOME)/.claude/skills"
-	for s in seed adopt harvest spinup; do \
+	for s in seed adopt harvest spinup legible; do \
 		ln -sfn "$(CURDIR)/.claude/skills/$$s" "$(HOME)/.claude/skills/$$s"; \
 	done
 

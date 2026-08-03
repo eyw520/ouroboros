@@ -1,6 +1,6 @@
 #!/bin/sh
 # Put the standards checkout on this machine and wire its skills user-level, so
-# every repo can run /seed (and adopt/harvest/spinup) with no per-session setup.
+# every repo can run /seed (and adopt/harvest/spinup/legible) with no setup.
 #
 #   ./bootstrap.sh              from inside a checkout: just wire the skills
 #   sh bootstrap.sh [dir] [url] fresh machine: clone into dir, then wire
