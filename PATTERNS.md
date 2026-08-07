@@ -63,6 +63,15 @@ Resist adding a separate serial lane: grouping makes "cannot parallelize" a per-
 Proof: a `--durations=0` variant target names the slow tests; the parallel and serial runs must report identical pass/skip counts (a diverging count is a hidden ordering dependency), and a CPU-bound suite in the minutes should drop to tens of seconds on laptop-class cores.
 Composes with the other gate accelerators — the tree-hash cache (free), testmon (run less), this (run wider), dmypy (stay warm) — they stack.
 
+## The fingerprint cache for fan-out gates
+
+When a repo's gate fans out over self-contained units — each with its own manifest, environment, and declared gate — most of a warm run is re-proving units nothing touched.
+Cache each unit's gate verdict by content fingerprint: hash the unit's own non-ignored files (enumerate via `git ls-files -co --exclude-standard`, so ignored envs and caches drop out) plus every shared input its gate can read (lint/type configs, the interpreter pin), and store `unit#command → fingerprint` in a gitignored per-machine memo, written only on a green run and invalidated on failure.
+The isolation is the correctness argument: when a unit's gate can read only its own directory plus the shared configs, an unchanged fingerprint means an unchanged verdict — so the fingerprint must cover *everything* the gate can read, or the cache lies.
+Skips are printed one line per unit, never silent; deleting the memo forces a full sweep; CI starts cold and always runs everything, so the trust trade stays local.
+Skip when units are not hermetic (a gate that probes live services can break with no content change — a cached pass would hide it until CI) or when every unit is already seconds.
+Proof: a warm no-change gate drops from minutes to seconds, and the skip lines enumerate exactly which units were trusted; composes with the tree-hash pre-commit cache, which only helps identical whole trees.
+
 ## The env contract
 
 A service-shaped repo declares its configuration as a committed `.env.example` documenting every variable; the real env file is gitignored, and the secret scan keeps it that way.
