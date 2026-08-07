@@ -8,7 +8,7 @@
 # period — are AUTO-FIXED in place rather than rejected; only a wrong or missing
 # type/scope prefix (or a body) rejects.
 
-types="feat|fix|chore|clean|revert"
+types="feat|fix|docs|chore|clean|revert"
 scopes=""
 
 # Optional: derive scopes from top-level directories (uncomment and adapt):

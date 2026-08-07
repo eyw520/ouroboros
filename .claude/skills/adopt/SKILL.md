@@ -36,8 +36,8 @@ tell the user why) when the repo is:
 
 ## Phase 2 — Choose the config
 
-- Types: what history actually uses (base `feat|fix|chore|clean|revert`; keep
-  per-repo extras like `docs`, `refactor`, `exec` that appear in history).
+- Types: what history actually uses (base `feat|fix|docs|chore|clean|revert`; keep
+  per-repo extras like `refactor`, `exec` that appear in history).
 - Scopes: from the histogram. No scopes in history → scopeless (`-s ""`).
   Monorepos may derive scopes dynamically from subdirectories (see the
   commented block in the template hook).

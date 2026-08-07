@@ -26,7 +26,7 @@ When this file and an enforcing hook disagree, the hook wins — fix whichever i
 
 - Format: `<type>(<scope>): Sentence case ending with period.` — subject only, no trailers.
   Some repos drop the scope; `.githooks/commit-msg` is the source of truth for exact types and scopes.
-- Base types: feat, fix, chore, clean, revert. Repos may extend.
+- Base types: feat, fix, docs, chore, clean, revert. Repos may extend.
 - Backtick code identifiers and filenames in the subject.
 - One logical change per commit (one fix, one feature, one phase); a snapshot or doc truth-keeping edit rides the commit that caused it.
 - For a bug fix, land the failing test with the fix.

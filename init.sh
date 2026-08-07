@@ -6,7 +6,7 @@ set -e
 
 usage() {
   echo "Usage: init.sh [-t types] [-s scopes] [-l python|node|none] [-c] <target-repo>"
-  echo "  -t  pipe-separated commit types   (default: feat|fix|chore|clean|revert)"
+  echo "  -t  pipe-separated commit types   (default: feat|fix|docs|chore|clean|revert)"
   echo "  -s  pipe-separated commit scopes  (default: empty = scopeless '<type>: ...')"
   echo "  -l  language preset for Makefile and tool configs (default: none)"
   echo "  -c  install the CI gate workflow (.github/workflows/gate.yml)"
@@ -16,7 +16,7 @@ usage() {
 std_root=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 tpl="$std_root/templates"
 
-types="feat|fix|chore|clean|revert"
+types="feat|fix|docs|chore|clean|revert"
 scopes=""
 lang="none"
 ci=0
